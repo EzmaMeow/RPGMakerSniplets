@@ -5,15 +5,28 @@ class Formula
     return (stat.to_f/max.to_f) + base
   end
   
+  #get a value of the stat if scaled by the level
+  #Note: max_level do not need to be the max level
+  #setting it to 50 mean that it will return the stat value at 50
+  #and almost double it at lvl 99
+  def self.get_lvl_scaled_stat(stat, level =1.0,max_level=99)
+    return [get_modifier(level, 0, max_level)*stat,1].max
+  end
+  
   #The default attack logic. It damage is modify around 0-2 times
-  #base on the attack stat
-  def self.attack(damage=1, attack=1, defence=0)
-    return damage * get_modifier(attack-defence,1.0)
+  #base on the attack stat.
+  def self.attack(damage=1, attack=1, defence=0, level=1.0)
+    return damage * get_modifier(attack-defence,1.0) * level
   end
   
   #An attack that damage scales off of atk stat
-  def self.power_attack(power=1, attack=1, defence=0)
+  def self.power_attack(power=1, attack=1, defence=0, level=1.0)
     return power * [(attack-defence),1].max
   end
 
+  
+  #these are compress damage formula that may be reuse a lot
+  def self.basic_attack(base_damage,a, b, v)
+    return attack((a.atk/15)+base_damage,a.atk,b.def,a.level)
+  end
 end
