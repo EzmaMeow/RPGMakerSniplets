@@ -3,22 +3,15 @@ class Magic_Blood
   #--------------------------------------------------------------------------
   # * Constants
   #-------------------------------------------------------------------------- 
+  BLOOD_MAGIC_TYPE_ID = 3           #Blood magic will be assign to this skill type
   MP_TO_HP_RATIO  = 10              #Blood mages can cast spells without mp
   HP_TO_POWER_RATIO = 250           #Higher the HP cost, the better the dmg
-  
-  BLOOD_MAGIC_SKILLS_START = 127   #to reduce stack reading, can provide a range
-  BLOOD_MAGIC_SKILLS_END = 129     #but after the range, will need to add to stack
-  BLOOD_MAGIC_SKILLS = [127]       #uses mp_to_hp ratio for hp cost
   
   #--------------------------------------------------------------------------
   # * States if the skill is blood magic
   #--------------------------------------------------------------------------
   def self.is_blood_magic?(skill)
-    if skill.id >= BLOOD_MAGIC_SKILLS_START && skill.id <= BLOOD_MAGIC_SKILLS_END
-      true
-    else
-      BLOOD_MAGIC_SKILLS.include?(skill.id)
-    end
+    skill.stype_id == BLOOD_MAGIC_TYPE_ID 
   end
   #--------------------------------------------------------------------------
   # * get the hp cost of casting a blood spell
@@ -31,7 +24,6 @@ class Magic_Blood
   #--------------------------------------------------------------------------
   def self.skill_cost_payable?(skill,caster)
     hp_cost = get_hp_cost(skill,caster)
-    #NOTE: not checking mp since blood magic use hp to cast
     caster.tp >= caster.skill_tp_cost(skill) && caster.hp > hp_cost
   end
   #--------------------------------------------------------------------------
