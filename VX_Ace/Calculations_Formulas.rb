@@ -1,4 +1,5 @@
 class Formula
+  
   #returns a value base on the ratio of the stat and max stat offset 
   #by the provided base.
   def self.get_modifier(stat, base = 1.0, max=255.0)
@@ -15,13 +16,16 @@ class Formula
   
   #The default attack logic. It damage is modify around 0-2 times
   #base on the attack stat.
-  def self.attack(damage=1, attack=1, defence=0, level=1.0)
-    return damage * get_modifier(attack-defence,1.0) * level
+  def self.attack(damage=1, attack=1, defence=0, level=1)
+    return (damage * get_modifier(attack-defence,1.0) * level).floor
   end
   
   #An attack that damage scales off of atk stat
-  def self.power_attack(power=1, attack=1, defence=0, level=1.0)
-    return power * [(attack-defence),1].max
+  #scaling_factor is the level at which the skill get bonus damage from level
+  #base on that ratio
+  def self.power_attack(power=1, attack=1, defence=0, level=1, scaling_factor = 10)
+    scaling =(level.to_f - 1.0)/scaling_factor.to_f + 1.0
+    return (power * [(attack-defence),1].max * scaling).floor
   end
 
   
