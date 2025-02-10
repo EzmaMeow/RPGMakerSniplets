@@ -3,6 +3,8 @@ class Game_Enemy < Game_Battler
   alias old_initialize initialize
   
   attr_reader   :level                    # level
+  attr_accessor :exp_scale_factor
+  attr_accessor :gold_scale_factor 
 
   #--------------------------------------------------------------------------
   # * Setup 
@@ -12,7 +14,9 @@ class Game_Enemy < Game_Battler
   def initialize(index, enemy_id)
     @level = 1
     @param_leveled = Array.new(8, 0)
-    @param_scale_factor = Array.new(8, 10.0)  
+    @param_scale_factor = Array.new(8, 10.0)
+    @exp_scale_factor = 10.0
+    @gold_scale_factor = 10.0
     old_initialize(index, enemy_id)
     update_param_leveled(true)
   end
@@ -39,6 +43,13 @@ class Game_Enemy < Game_Battler
     @param_scale_factor[param_id] = value.to_f
   end
   
+  #--------------------------------------------------------------------------
+  # * Get Scale Value
+  #   This  will scale a value by the provide factor and current level
+  #--------------------------------------------------------------------------
+  def get_scale_value(scale_factor = 1.0,base_value=1,min_value=1.0)
+    return [((level-1)/scale_factor + 1)*base_value,min_value].max
+  end
   
   #--------------------------------------------------------------------------
   # * Update param_leveled
@@ -47,20 +58,12 @@ class Game_Enemy < Game_Battler
   #--------------------------------------------------------------------------
   def update_param_leveled(recover = true)
     for id in 0..7 do
-      level_modifier = 1
-      scale_factor =  param_scale_factor(id)
-      if @level >= 1
-        level_modifier = (level-1)/param_scale_factor(id) + 1
-        #level_modifier = (@level-1+scale_factor)/scale_factor
-      end
-      @param_leveled[id] = (enemy.params[id] * level_modifier).floor
+      @param_leveled[id] = get_scale_value(param_scale_factor(id),enemy.params[id])
     end
     if recover
       recover_all
     end
   end
-  
-
   
   #--------------------------------------------------------------------------
   # * Set Level
@@ -77,6 +80,19 @@ class Game_Enemy < Game_Battler
   #--------------------------------------------------------------------------
   def param_base(param_id)
     param_leveled(param_id)
+  end
+  
+  #--------------------------------------------------------------------------
+  # * (Overrding) Get Experience
+  #--------------------------------------------------------------------------
+  def exp
+    return get_scale_value(exp_scale_factor,enemy.exp,0).floor 
+  end
+  #--------------------------------------------------------------------------
+  # * (Overrding) Get Gold
+  #--------------------------------------------------------------------------
+  def gold
+    return get_scale_value(gold_scale_factor,enemy.gold,0).floor 
   end
   
   #NOTE: Help has this infomation, but keeping it here to
