@@ -1,3 +1,4 @@
+
 class Game_Enemy < Game_Battler
   
   alias old_initialize initialize
@@ -15,8 +16,8 @@ class Game_Enemy < Game_Battler
     @level = 1
     @param_leveled = Array.new(8, 0)
     @param_scale_factor = Array.new(8, 10.0)
-    @exp_scale_factor = 10.0
-    @gold_scale_factor = 10.0
+    @exp_scale_factor = 1.0
+    @gold_scale_factor = 1.0
     old_initialize(index, enemy_id)
     update_param_leveled(true)
   end
