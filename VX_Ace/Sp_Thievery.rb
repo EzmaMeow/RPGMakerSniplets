@@ -51,4 +51,31 @@ class Thievery
     ) + bonus
   end
   
+  #--------------------------------------------------------------------------
+  # * Roll check to pick lock
+  #-------------------------------------------------------------------------- 
+  def self.lock_picked?(actor, difficulty=0,bonus=0)
+    roll = 1 + rand(100 + difficulty)
+    print " roll: "; print roll; print " | "
+    return get_pick_lock_chance(actor, bonus) >= roll
+  end
+  
+  #--------------------------------------------------------------------------
+  # * Roll check to detect trap
+  #-------------------------------------------------------------------------- 
+  def self.trap_detected?(actor, difficulty=0,bonus=0)
+    roll = 1 + rand(100 + difficulty)
+    print " roll: "; print roll; print " | "
+    return get_detect_trap_chance(actor, bonus) >= roll
+  end
+  
+  #--------------------------------------------------------------------------
+  # * Roll check to disarm trap
+  #-------------------------------------------------------------------------- 
+  def self.trap_disarmed?(actor, difficulty=0,bonus=0)
+    roll = 1 + rand(100 + difficulty)
+    print " roll: "; print roll; print " | "
+    return get_disarm_trap_chance(actor, bonus) >= roll
+  end
+  
 end
