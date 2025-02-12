@@ -52,3 +52,8 @@ Project List:
   A class that provide functions to use with damage formula. It ment to be modify so that the namespace
   of Formula will be used for fetching the function. The first common parameters will be `base_damage, attack, defence` 
   as int or floats. There may be deviations as well as ones using the `base_damage, a, b, v` parameters for more advance caculations.
+
+-SP_Thievery:
+  This is to provide functionality for lockpick, detect traps, disarm traps, and other realated skills.
+  Currently it provide each class with a base and factor for each of the three skills and functions for getting this 
+  value for the used of roll checks.
