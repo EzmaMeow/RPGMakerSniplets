@@ -1,9 +1,17 @@
 
 class Game_Enemy < Game_Battler
   
+  #--------------------------------------------------------------------------
+  # * Constants
+  #--------------------------------------------------------------------------
+  PARAM_SCALED_FACTOR = Array.new(8, 10.0)
+  EXP_SCALED_FACTOR = 1.0
+  GOLD_SCALED_FACTOR = 1.0
+  MAX_LEVEL = 99
+  
   alias old_initialize initialize
   
-  attr_reader   :level                    # level
+  attr_reader   :level
   attr_accessor :exp_scale_factor
   attr_accessor :gold_scale_factor 
 
@@ -15,9 +23,9 @@ class Game_Enemy < Game_Battler
   def initialize(index, enemy_id)
     @level = 1
     @param_leveled = Array.new(8, 0)
-    @param_scale_factor = Array.new(8, 10.0)
-    @exp_scale_factor = 1.0
-    @gold_scale_factor = 1.0
+    @param_scale_factor = PARAM_SCALED_FACTOR.clone
+    @exp_scale_factor = EXP_SCALED_FACTOR
+    @gold_scale_factor = GOLD_SCALED_FACTOR
     old_initialize(index, enemy_id)
     update_param_leveled(true)
   end
@@ -71,7 +79,7 @@ class Game_Enemy < Game_Battler
   #   For event scripts to call to set an enemy level
   #   Should only be used for enemies that stats are design to scale with level
   #--------------------------------------------------------------------------
-  def set_level(new_level, max_level = 99, recover = true)
+  def set_level(new_level, recover = true, max_level = MAX_LEVEL)
     @level = [[new_level, max_level].min, 1].max
     update_param_leveled(recover)
   end
@@ -95,16 +103,4 @@ class Game_Enemy < Game_Battler
   def gold
     return get_scale_value(gold_scale_factor,enemy.gold,0).floor 
   end
-  
-  #NOTE: Help has this infomation, but keeping it here to
-  #help with testing for now:
-  #0: Maximum hit points 
-  #1: Maximum magic points 
-  #2: Attack power 
-  #3: Defense power 
-  #4: Magic attack power 
-  #5: Magic defense power 
-  #6: Agility 
-  #7: Luck 
-
 end
