@@ -57,3 +57,13 @@ Project List:
   This is to provide functionality for lockpick, detect traps, disarm traps, and other realated skills.
   Currently it provide each class with a base and factor for each of the three skills and functions for getting this 
   value for the used of roll checks.
+
+-Modual: Story:
+  This is more of an example. It contains a way to trigger events by script call instead of depending on parallel processes.
+  It also meant to provide session base varibles and tools to help regulate the story progression, but that will be unque to the game
+  so it is unlikly I will add that here.
+    -a use example: lets say I have a lot of events representing road blockers. Instead of setting them all to parallel processes to check
+    the game state, they are instead added to the story state notify system and only run their checks when the state is changed or Story.notify get called.
+    -It also allow a way to get a stated by a string instead of an id if set up that way. This allows prototypes to switch game varibles around without having to 
+    edit all the events that depends on that varible. I guess once can add a version checker and do such thing for non prototpes without breaking saves
+    -in short, this modual is meant to help manage story progressions that might be too crazy to handle with just event limitations.
