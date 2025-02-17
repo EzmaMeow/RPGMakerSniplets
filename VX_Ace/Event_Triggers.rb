@@ -16,9 +16,9 @@ module Event_Triggers
   @queue_triggers = []
 
   def self.connection_type_id(name)
-    if [0,"variable","variables"].include?(id)
+    if [0,"variable","variables","var"].include?(id)
       return 1
-    elsif [1,"switch","switches"].include?(id)
+    elsif [1,"switch","switches","swi"].include?(id)
       return 2
     end
     return 0
@@ -52,7 +52,7 @@ module Event_Triggers
     for trigger in @queue_triggers
       for event in @listeners[trigger]
         if event.respond_to?(:start)
-          if event.trigger > 1; return; end 
+          if event.trigger.to_i  > 1; return; end 
           event.start
         else
           @listeners[trigger].delete(event)
