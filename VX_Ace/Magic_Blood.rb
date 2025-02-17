@@ -5,8 +5,16 @@ class Magic_Blood
   #-------------------------------------------------------------------------- 
   BLOOD_MAGIC_TYPE_ID = 3           #Blood magic will be assign to this skill type
   MP_TO_HP_RATIO  = 10              #Blood mages can cast spells without mp
-  HP_TO_POWER_RATIO = 250           #Higher the HP cost, the better the dmg
+  BASE_HP_BONUS_RATE = 0.1          #this is the bonus cost(and power) from max hp
   
+  #--------------------------------------------------------------------------
+  # * Get a percent of the caster max hp to be used for bonus cost and power
+  #   Note: the skill need to call this if it want to get the bonus damage
+  #-------------------------------------------------------------------------
+  def self.get_hp_bonus(caster,rate=BASE_HP_BONUS_RATE)
+    return (caster.param(0) * 0.1).floor
+  end
+
   #--------------------------------------------------------------------------
   # * States if the skill is blood magic
   #--------------------------------------------------------------------------
@@ -17,7 +25,7 @@ class Magic_Blood
   # * get the hp cost of casting a blood spell
   #--------------------------------------------------------------------------
   def self.get_hp_cost(skill,caster)
-    return caster.skill_mp_cost(skill)*MP_TO_HP_RATIO
+    return caster.skill_mp_cost(skill)* MP_TO_HP_RATIO + get_hp_bonus(caster)
   end
   #--------------------------------------------------------------------------
   # * Determine if Cost of Using Skill Can Be Paid
