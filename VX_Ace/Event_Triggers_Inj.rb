@@ -49,5 +49,6 @@ class Game_Map
     old_setup_events
     Event_Triggers.add_to_trigger_queue(0)
     Event_Triggers.add_to_trigger_queue(1)
+    Event_Triggers.run_triggers
   end
 end
