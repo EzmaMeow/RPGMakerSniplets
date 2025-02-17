@@ -4,15 +4,21 @@
 #--------------------------------------------------------------------------
 module Event_Triggers
   #--------------------------------------------------------------------------
+  # * Constants
+  #--------------------------------------------------------------------------
+  #This will ignore varibles and switches of the listed indexes from staring events
+  BLACKLIST_VAR_IDS = [[],[]]  
+  
+  #--------------------------------------------------------------------------
   # * Module Instance Variables
   #--------------------------------------------------------------------------
-  @listeners = [nil,[],[]] 
+  @listeners = [[],[]] 
   @queue_triggers = []
 
   def self.connection_type_id(name)
-    if [1,"variable","variables"].include?(id)
+    if [0,"variable","variables"].include?(id)
       return 1
-    elsif [2,"switch","switches"].include?(id)
+    elsif [1,"switch","switches"].include?(id)
       return 2
     end
     return 0
@@ -37,6 +43,7 @@ module Event_Triggers
   end
   
   def self.on_change(id = 0, index = 0, value = 0, old_value=0)
+    if BLACKLIST_VAR_IDS[id].include?(index); return; end
     if !@listeners[id]; return; end
     add_to_trigger_queue(id)
   end
@@ -48,7 +55,7 @@ module Event_Triggers
           if event.trigger > 1; return; end 
           event.start
         else
-          @listeners[id].delete(event)
+          @listeners[trigger].delete(event)
         end
       end
     end
