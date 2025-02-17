@@ -6,7 +6,7 @@ class Game_Variables
     old_value = @data[variable_id]
     old_setter(variable_id, value)
     if old_value != value
-      Event_Triggers.on_change(1,variable_id,value,old_value)
+      Event_Triggers.on_change(0,variable_id,value,old_value)
     end
   end
 end
@@ -17,7 +17,7 @@ class Game_Switches
     old_value = @data[switch_id]
     old_setter(switch_id, value)
     if old_value != value
-      Event_Triggers.on_change(2,switch_id,value,old_value)
+      Event_Triggers.on_change(1,switch_id,value,old_value)
     end
   end
 end
@@ -28,10 +28,10 @@ class Game_Event < Game_Character
     old_initialize(map_id, event)
     
     if event.name.include?("*var")
-      Event_Triggers.connect_to(1, self)
+      Event_Triggers.connect_to(0, self)
     end
     if event.name.include?("*swi")
-      Event_Triggers.connect_to(2, self)
+      Event_Triggers.connect_to(1, self)
     end
   end
 end
@@ -47,7 +47,7 @@ class Game_Map
   
   def setup_events
     old_setup_events
+    Event_Triggers.add_to_trigger_queue(0)
     Event_Triggers.add_to_trigger_queue(1)
-    Event_Triggers.add_to_trigger_queue(2)
   end
 end
