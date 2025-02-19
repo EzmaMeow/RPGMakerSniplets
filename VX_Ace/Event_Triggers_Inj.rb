@@ -22,6 +22,17 @@ class Game_Switches
   end
 end
 
+class Game_SelfSwitches
+  alias :old_setter :[]=
+  def []=(key, value)
+    old_value = @data[key]
+    old_setter(key, value)
+    if old_value != value
+      Event_Triggers.on_change(2,key,value,old_value)
+    end
+  end
+end
+
 class Game_Event < Game_Character
   alias old_initialize initialize
   def initialize(map_id, event)
@@ -33,8 +44,24 @@ class Game_Event < Game_Character
     if event.name.include?("*swi")
       Event_Triggers.connect_to(1, self)
     end
+    if event.name.include?("*sswi")
+      Event_Triggers.connect_to(2, self)
+    end
+    if event.name.include?("*init")
+      Event_Triggers.connect_to(3, self)
+      Event_Triggers.add_to_trigger_queue(3)
+    end
+    if event.name.include?("*trig")
+      for trig_scan_element in event.name.scan(/\*(?:trig)(\d+)/i)
+        trig_id = trig_scan_element[0].to_i
+        if !trig_id; next; end
+        if !Event_Triggers.create_trigger(trig_id); next; end
+        Event_Triggers.connect_to(trig_id, self)
+      end
+    end
   end
 end
+
 
 class Game_Map
   alias old_refresh refresh
@@ -49,6 +76,7 @@ class Game_Map
     old_setup_events
     Event_Triggers.add_to_trigger_queue(0)
     Event_Triggers.add_to_trigger_queue(1)
+    Event_Triggers.add_to_trigger_queue(2)
     Event_Triggers.run_triggers
   end
 end
