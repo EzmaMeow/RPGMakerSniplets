@@ -1,3 +1,7 @@
+##NOTE: This was an example of a trigger base event system. It may be removed or the link event stystem here will be removed
+##Since it meant to help with story progression, the one in my project may be bloated with game content states so there a chance 
+##I might not update this.
+
 module Story
   
   #NOTE: How to use:
