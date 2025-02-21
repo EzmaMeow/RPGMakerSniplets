@@ -10,6 +10,7 @@ class Scene_ItemBase < Scene_MenuBase
     @class.note
   end
 end
+
 #to acessenemy notes: #$game_troop.members[0].enemy.note
 #to acessparty member notes: #$game_party.members[0].actor.note
 #to acess class notes: #$game_party.members[0].class.note
@@ -18,7 +19,7 @@ module Note_Reader
   #will return a hash of var names and values as strings
   #so the caller need to cast to the correct type since this
   #will not know if it should be a int, float, or string
-  def self.get_varibles(source)
+  def self.get_variables(source)
     vars = {}
     if source.respond_to?(:note)
       for scan_results in source.note.scan(/@(.*?)=(.*?);/)
@@ -32,4 +33,16 @@ module Note_Reader
     return vars
   end
   
+  def self.get_variable(key,source,default = 0)
+    if key == nil; return default; end #nil keys will be a pain. 
+    puts ""
+    print source; print " has note : "; print source.respond_to?(:note)
+    if source.respond_to?(:note)
+      results = source.note.match(/@#{key}=(.*?);/)
+      if results != nil
+        return results[1]
+      end
+    end
+    return default
+  end
 end
