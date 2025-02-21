@@ -1,4 +1,3 @@
-
 class Game_Enemy < Game_Battler
   
   alias old_transform transform
@@ -32,8 +31,7 @@ class Game_Enemy < Game_Battler
     @exp_scale_factor = EXP_SCALED_FACTOR
     @gold_scale_factor = GOLD_SCALED_FACTOR
     old_initialize(index, enemy_id)
-    update_param_leveled(true)
-    apply_param_variance
+    refresh_params(true,true)
   end
   
   #--------------------------------------------------------------------------
@@ -94,12 +92,9 @@ class Game_Enemy < Game_Battler
   #   This will scale the enemy stats base on their level at the time of this
   #   being called
   #--------------------------------------------------------------------------
-  def update_param_leveled(recover = true)
+  def update_param_leveled
     for id in 0..7 do
       @param_leveled[id] = get_scale_value(param_scale_factor(id),enemy.params[id])
-    end
-    if recover
-      recover_all
     end
   end
   
@@ -113,13 +108,28 @@ class Game_Enemy < Game_Battler
   end
   
   #--------------------------------------------------------------------------
+  # * refresh_params
+  #   This calls all the dymanic params 
+  #--------------------------------------------------------------------------
+  def refresh_params(recover = true, reroll_variance = true)
+    update_param_leveled
+    if reroll_variance
+      apply_param_variance
+    end
+    if recover
+      @hp = mhp
+      @mp = mmp
+    end
+  end
+  
+  #--------------------------------------------------------------------------
   # * Set Level
   #   For event scripts to call to set an enemy level
   #   Should only be used for enemies that stats are design to scale with level
   #--------------------------------------------------------------------------
   def set_level(new_level, recover = true, max_level = MAX_LEVEL)
     @level = [[new_level, max_level].min, 1].max
-    update_param_leveled(recover)
+    refresh_params(recover,false)
   end
   
   #--------------------------------------------------------------------------
@@ -149,7 +159,7 @@ class Game_Enemy < Game_Battler
     old_id = @enemy_id
     old_transform(enemy_id)
     if old_id  != enemy_id
-      update_param_leveled(true)
+      refresh_params
     end
   end
 
