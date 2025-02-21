@@ -10,12 +10,62 @@ class Game_Enemy < Game_Battler
   GOLD_SCALED_FACTOR = 1.0
   PARAM_VARIANCE_FACTOR = 10.0
   MAX_LEVEL = 99
+  USE_PARTY_AVERAGE_LEVEL = false
   
   alias old_initialize initialize
   
   attr_reader   :level
-  attr_accessor :exp_scale_factor
-  attr_accessor :gold_scale_factor 
+  #attr_accessor :exp_scale_factor
+  #attr_accessor :gold_scale_factor 
+
+  
+  def party_average_level(use_average = USE_PARTY_AVERAGE_LEVEL)
+    #Note: added `==` since false was true
+    if use_average
+      level_sum = 0
+      for actor in $game_party.members
+        level_sum += actor.level
+      end
+      return (level_sum.to_f / $game_party.members.size.to_f).to_i
+    end
+    return 1
+  end
+  
+  def default_level
+    value = party_average_level
+    #default value should make modifcations to the last declared default level
+    #say map set it to 10, troop can add 5 to it or set it to five or give it 
+    #a random range from 10-15.
+    if $game_map.respond_to?(:default_level)
+      value = $game_map.default_level(value)
+    end
+    if $game_troop.respond_to?(:default_level)
+      value = $game_troop.default_level(value)
+    end
+    return value
+  end
+  
+  def exp_scale_factor
+    value = EXP_SCALED_FACTOR
+    if $game_map.respond_to?(:exp_modifier)
+      value *= $game_map.exp_modifier
+    end
+    if $game_troop.respond_to?(:exp_modifier)
+      value *= $game_troop.exp_modifier
+    end
+    return value
+  end
+  
+  def gold_scale_factor
+    value = GOLD_SCALED_FACTOR
+    if $game_map.respond_to?(:gold_modifier)
+      value *= $game_map.gold_modifier
+    end
+    if $game_troop.respond_to?(:gold_modifier)
+      value *= $game_troop.gold_modifier
+    end
+    return value
+  end
 
   #--------------------------------------------------------------------------
   # * Setup 
@@ -23,14 +73,12 @@ class Game_Enemy < Game_Battler
   #   (also to allow enemies to simulate having levels)
   #--------------------------------------------------------------------------
   def initialize(index, enemy_id)
-    @level = 1
     @param_leveled = Array.new(8, 0)
     @param_variance_factor = Array.new(8, PARAM_VARIANCE_FACTOR)
     @param_variance = Array.new(8, 0)
     @param_scale_factor = PARAM_SCALED_FACTOR.clone
-    @exp_scale_factor = EXP_SCALED_FACTOR
-    @gold_scale_factor = GOLD_SCALED_FACTOR
     old_initialize(index, enemy_id)
+    @level = default_level
     refresh_params(true,true)
   end
   
@@ -121,7 +169,6 @@ class Game_Enemy < Game_Battler
       @mp = mmp
     end
   end
-  
   #--------------------------------------------------------------------------
   # * Set Level
   #   For event scripts to call to set an enemy level
