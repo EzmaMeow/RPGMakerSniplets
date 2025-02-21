@@ -35,8 +35,6 @@ module Note_Reader
   
   def self.get_variable(key,source,default = 0)
     if key == nil; return default; end #nil keys will be a pain. 
-    puts ""
-    print source; print " has note : "; print source.respond_to?(:note)
     if source.respond_to?(:note)
       results = source.note.match(/@#{key}=(.*?);/)
       if results != nil
