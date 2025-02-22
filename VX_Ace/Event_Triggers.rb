@@ -82,7 +82,7 @@ module Event_Triggers
         for event in @listeners[trigger]
           if event.respond_to?(:start)
             if event.trigger.to_i  > 1; return; end 
-            event.start
+            event.start(trigger)
             @queue_triggers.delete(trigger)
           else
             @listeners[trigger].delete(event)
