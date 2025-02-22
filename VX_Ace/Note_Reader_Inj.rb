@@ -70,6 +70,10 @@ end
 #--------------------------------------------------------------------------
 class Game_Enemy < Game_Battler
   alias old_party_average_level party_average_level
+  alias old_exp_scale_factor exp_scale_factor
+  alias old_gold_scale_factor gold_scale_factor
+  alias old_init_params_factors init_params_factors
+  
   def party_average_level(use_average = USE_PARTY_AVERAGE_LEVEL)
     #will check each source base on override order
     #override order: Troop, enemy, map where troop override all
@@ -85,7 +89,36 @@ class Game_Enemy < Game_Battler
     if !note_value.nil?
       use_average = note_value.downcase == "true"
     end
-
     old_party_average_level(use_average)
   end
+  
+  def init_params_factors(index, enemy_id)
+    #note: this may get costly with more stats
+    old_init_params_factors(index, enemy_id)
+    enemy = $data_enemies[enemy_id]
+    keys =["mhp","mmp","atk","def","mat","mdf","agi","luk"]
+    for i in 0..keys.size-1
+      key = keys[i].to_s + "_variance"
+      @param_variance_factor[i] = Note_Reader.get_variable(
+        key,enemy,PARAM_VARIANCE_FACTOR
+      ).to_f
+      key = keys[i].to_s + "_scale_factor"
+      @param_scale_factor[i] = Note_Reader.get_variable(
+        key,enemy,PARAM_SCALED_FACTOR[i]
+      ).to_f
+    end
+  end
+  
+  def exp_scale_factor
+    return Note_Reader.get_variable(
+    "exp_scale_factor",enemy,old_exp_scale_factor
+    ).to_f
+  end
+  
+  def gold_scale_factor
+    return Note_Reader.get_variable(
+    "gold_scale_factor",enemy,old_gold_scale_factor
+    ).to_f
+  end
+  
 end
