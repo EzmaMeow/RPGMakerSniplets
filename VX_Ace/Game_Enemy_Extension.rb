@@ -15,12 +15,8 @@ class Game_Enemy < Game_Battler
   alias old_initialize initialize
   
   attr_reader   :level
-  #attr_accessor :exp_scale_factor
-  #attr_accessor :gold_scale_factor 
-
   
   def party_average_level(use_average = USE_PARTY_AVERAGE_LEVEL)
-    #Note: added `==` since false was true
     if use_average
       level_sum = 0
       for actor in $game_party.members
@@ -33,9 +29,6 @@ class Game_Enemy < Game_Battler
   
   def default_level
     value = party_average_level
-    #default value should make modifcations to the last declared default level
-    #say map set it to 10, troop can add 5 to it or set it to five or give it 
-    #a random range from 10-15.
     if $game_map.respond_to?(:default_level)
       value = $game_map.default_level(value)
     end
@@ -46,27 +39,18 @@ class Game_Enemy < Game_Battler
   end
   
   def exp_scale_factor
-    value = EXP_SCALED_FACTOR
-    if $game_map.respond_to?(:exp_modifier)
-      value *= $game_map.exp_modifier
-    end
-    if $game_troop.respond_to?(:exp_modifier)
-      value *= $game_troop.exp_modifier
-    end
-    return value
+    return EXP_SCALED_FACTOR
   end
   
   def gold_scale_factor
-    value = GOLD_SCALED_FACTOR
-    if $game_map.respond_to?(:gold_modifier)
-      value *= $game_map.gold_modifier
-    end
-    if $game_troop.respond_to?(:gold_modifier)
-      value *= $game_troop.gold_modifier
-    end
-    return value
+    return GOLD_SCALED_FACTOR
   end
 
+  def init_params_factors(index, enemy_id)
+    @param_variance_factor = Array.new(8, PARAM_VARIANCE_FACTOR)
+    @param_scale_factor = PARAM_SCALED_FACTOR.clone
+  end
+  
   #--------------------------------------------------------------------------
   # * Setup 
   #   Added level to enemies to prevent level breaking damage fomulas
@@ -74,11 +58,12 @@ class Game_Enemy < Game_Battler
   #--------------------------------------------------------------------------
   def initialize(index, enemy_id)
     @param_leveled = Array.new(8, 0)
-    @param_variance_factor = Array.new(8, PARAM_VARIANCE_FACTOR)
     @param_variance = Array.new(8, 0)
-    @param_scale_factor = PARAM_SCALED_FACTOR.clone
+    init_params_factors(index, enemy_id)
     old_initialize(index, enemy_id)
     @level = default_level
+    puts ""
+    print "level set to : "; print @level
     refresh_params(true,true)
   end
   
@@ -132,6 +117,10 @@ class Game_Enemy < Game_Battler
   #   This  will scale a value by the provide factor and current level
   #--------------------------------------------------------------------------
   def get_scale_value(scale_factor = 1.0,base_value=1,min_value=1.0)
+    #dividing by x/0 is bad. this bypass the crash
+    if scale_factor == 0
+      return [base_value,min_value].max; 
+    end
     return [((level-1)/scale_factor + 1)*base_value,min_value].max
   end
   
@@ -190,13 +179,27 @@ class Game_Enemy < Game_Battler
   # * (Overrding) Get Experience
   #--------------------------------------------------------------------------
   def exp
-    return get_scale_value(exp_scale_factor,enemy.exp,0).floor 
+    value = get_scale_value(exp_scale_factor,enemy.exp,0)
+    if $game_map.respond_to?(:exp_modifier)
+      value *= $game_map.exp_modifier
+    end
+    if $game_troop.respond_to?(:exp_modifier)
+      value *= $game_troop.exp_modifier
+    end
+    return value.floor 
   end
   #--------------------------------------------------------------------------
   # * (Overrding) Get Gold
   #--------------------------------------------------------------------------
   def gold
-    return get_scale_value(gold_scale_factor,enemy.gold,0).floor 
+    value = get_scale_value(gold_scale_factor,enemy.gold,0)
+    if $game_map.respond_to?(:gold_modifier)
+      value *= $game_map.gold_modifier
+    end
+    if $game_troop.respond_to?(:gold_modifier)
+      value *= $game_troop.gold_modifier
+    end
+    return value.floor
   end
   
   #--------------------------------------------------------------------------
