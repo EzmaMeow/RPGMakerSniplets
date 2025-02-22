@@ -35,9 +35,15 @@ end
 
 class Game_Event < Game_Character
   alias old_initialize initialize
+  alias old_start start
+  
+  #call `$game_map.events[@event_id].remote_trigger >= 0` in condition script
+  #to see if the event was remotely triggered.
+  attr_reader :remote_trigger 
+  
   def initialize(map_id, event)
     old_initialize(map_id, event)
-    
+    @remote_trigger = -1
     if event.name.include?("*var")
       Event_Triggers.connect_to(0, self)
     end
@@ -60,6 +66,19 @@ class Game_Event < Game_Character
       end
     end
   end
+  
+  #added a remote trigger identifier to help guess what
+  #trigger the event. it will use the trigger id so default
+  #need to be one less (-1)
+  def start(remote_trigger_id = -1)
+    if !@starting || (remote_trigger_id == -1 && @remote_trigger != -1)
+      #only set it if it is not running or default trigger happens
+      #so the remote trigger do not override touch or action events on accident
+      @remote_trigger = remote_trigger_id
+    end
+    old_start
+  end
+  
 end
 
 
