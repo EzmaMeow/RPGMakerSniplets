@@ -3,6 +3,8 @@
   #Note_Reader
   #Magic_Blood
   #Game_Enemy_Extension
+#Optional 
+  #Game_Map_Extension
 
 #note: this is to inject note reading for embeded varibles into existing custom classes and modules
 
@@ -17,6 +19,7 @@ module Note_Reader
   #in memory with size compare to arrays and class vars so it not ideal for an
   #for all case
   @data_skills={}
+  @data_enemies={}
   
   def self.get_data_value(data_key, id, default, data_source)
     if !data_source[data_key] 
@@ -74,7 +77,7 @@ class Game_Enemy < Game_Battler
   alias old_gold_scale_factor gold_scale_factor
   alias old_init_params_factors init_params_factors
   
-  def party_average_level(use_average = USE_PARTY_AVERAGE_LEVEL)
+  def party_average_level(use_average=false, level=1)
     #will check each source base on override order
     #override order: Troop, enemy, map where troop override all
     #but troop do not have notes, so the logic should be check in
@@ -89,7 +92,8 @@ class Game_Enemy < Game_Battler
     if !note_value.nil?
       use_average = note_value.downcase == "true"
     end
-    old_party_average_level(use_average)
+    level = Note_Reader.get_variable("level",enemy,level).to_i
+    old_party_average_level(use_average, level)
   end
   
   def init_params_factors(index, enemy_id)
@@ -120,5 +124,16 @@ class Game_Enemy < Game_Battler
     "gold_scale_factor",enemy,old_gold_scale_factor
     ).to_f
   end
+end
   
+#--------------------------------------------------------------------------
+# * Game_Map_Extension
+#   allow map to clamp the level
+#--------------------------------------------------------------------------
+class Game_Map
+  
+  def setup_level
+    @min_level = Note_Reader.get_variable("min_level",@map,1).to_f
+    @max_level = Note_Reader.get_variable("max_level",@map,99).to_f
+  end
 end
