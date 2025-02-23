@@ -1,3 +1,4 @@
+
 class Game_Enemy < Game_Battler
   
   alias old_transform transform
@@ -16,7 +17,7 @@ class Game_Enemy < Game_Battler
   
   attr_reader   :level
   
-  def party_average_level(use_average = USE_PARTY_AVERAGE_LEVEL)
+  def party_average_level(use_average = false,level=1)
     if use_average
       level_sum = 0
       for actor in $game_party.members
@@ -24,11 +25,11 @@ class Game_Enemy < Game_Battler
       end
       return (level_sum.to_f / $game_party.members.size.to_f).to_i
     end
-    return 1
+    return level
   end
   
   def default_level
-    value = party_average_level
+    value = party_average_level(USE_PARTY_AVERAGE_LEVEL)
     if $game_map.respond_to?(:default_level)
       value = $game_map.default_level(value)
     end
@@ -62,8 +63,6 @@ class Game_Enemy < Game_Battler
     init_params_factors(index, enemy_id)
     old_initialize(index, enemy_id)
     @level = default_level
-    puts ""
-    print "level set to : "; print @level
     refresh_params(true,true)
   end
   
@@ -212,5 +211,4 @@ class Game_Enemy < Game_Battler
       refresh_params
     end
   end
-
 end
