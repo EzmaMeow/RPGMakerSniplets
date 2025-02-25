@@ -22,6 +22,8 @@ class Game_Actor
       end
       if item.etype_id == 0 && is_two_handed?(item.wtype_id)
         return false
+      elsif item.etype_id == 1
+        return false if equip_type_sealed?(1)
       end
     else
       return false if equip_slots[slot_id] != item.etype_id
@@ -57,6 +59,7 @@ class Game_Actor
     end
     return super(item)
   end
+  
 end
 
 
