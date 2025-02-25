@@ -13,6 +13,7 @@ class Game_Actor
   end
   
   def can_equip_in_slot(slot_id,item)
+    #if in offhand slot
     if slot_id == 1
       main_weapon = @equips[0].object
       if main_weapon
@@ -20,8 +21,11 @@ class Game_Actor
           return false
         end
       end
-      if item.etype_id == 0 && is_two_handed?(item.wtype_id)
-        return false
+      #if a weapon
+      if item.etype_id == 0
+        return false if is_two_handed?(item.wtype_id)
+        return false if !dual_wield?
+      #if a shield
       elsif item.etype_id == 1
         return false if equip_type_sealed?(1)
       end
