@@ -22,14 +22,12 @@ class Window_Status < Window_Selectable
   def update
     super
     if Input.trigger?(:LEFT)
-      print " meow up "
       @page -= 1
       if @page < 0; @page = 2; end
       refresh
     elsif Input.trigger?(:RIGHT)
       @page += 1
       if @page > 2; @page = 0; end
-      print " meow down "
       refresh
     end
   end
