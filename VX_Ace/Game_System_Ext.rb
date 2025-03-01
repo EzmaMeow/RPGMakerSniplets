@@ -21,7 +21,7 @@ class Game_System
   # * Pre-Save Processing
   #--------------------------------------------------------------------------
   def on_before_save
-    old_on_before_saved
+    old_on_before_save
     @saved_window_tone =[window_tone.red,window_tone.blue,window_tone.green]
   end
   #--------------------------------------------------------------------------
