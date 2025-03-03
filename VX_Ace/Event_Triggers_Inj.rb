@@ -1,5 +1,9 @@
 #requires Event_Triggers
 
+#NOTE: events get updated on map refresh, so this system is more for
+#cases where more complex conditions need to be checked or logic need to
+#run on that state change.
+
 class Game_Variables
   alias :old_setter :[]=
   def []=(variable_id, value)
