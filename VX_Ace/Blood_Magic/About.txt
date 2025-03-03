@@ -1,0 +1,2 @@
+Blood Magic is an example system that allow skills to use hp as a cost.
+This system require a dedicated skill type(group) to be used for blood magic (default is 3).
