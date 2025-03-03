@@ -46,16 +46,20 @@ class Game_Event < Game_Character
     @remote_trigger = -1
     if event.name.include?("*var")
       Event_Triggers.connect_to(0, self)
+      Event_Triggers.add_to_trigger_queue(0)
     end
     if event.name.include?("*swi")
       Event_Triggers.connect_to(1, self)
+      Event_Triggers.add_to_trigger_queue(1)
     end
     if event.name.include?("*sswi")
       Event_Triggers.connect_to(2, self)
+      Event_Triggers.add_to_trigger_queue(2)
     end
     if event.name.include?("*init")
       Event_Triggers.connect_to(3, self)
       Event_Triggers.add_to_trigger_queue(3)
+      
     end
     if event.name.include?("*trig")
       for trig_scan_element in event.name.scan(/\*(?:trig)(\d+)/i)
@@ -93,9 +97,6 @@ class Game_Map
   
   def setup_events
     old_setup_events
-    Event_Triggers.add_to_trigger_queue(0)
-    Event_Triggers.add_to_trigger_queue(1)
-    Event_Triggers.add_to_trigger_queue(2)
     Event_Triggers.run_triggers
   end
 end
