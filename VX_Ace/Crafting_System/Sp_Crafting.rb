@@ -148,23 +148,10 @@ end
 #--------------------------------------------------------------------------
 module Recipe_Handler
   @common_recipes = [
-    Base_Recipe.new("Scrap Axe",[Recipe_Item.new(RPG::Item,17,1),
-    Recipe_Item.new(RPG::Item,19,2), Recipe_Item.new(RPG::Item,20,1)],
-    [Recipe_Item.new(RPG::Weapon,61,1)]),
-    Base_Recipe.new("Scrap Spear",[Recipe_Item.new(RPG::Item,17,1),
-    Recipe_Item.new(RPG::Item,19,1), Recipe_Item.new(RPG::Item,20,1)],
-    [Recipe_Item.new(RPG::Weapon,62,1)]),
-    Base_Recipe.new("Scrap Sword",[Recipe_Item.new(RPG::Item,20,1),
-    Recipe_Item.new(RPG::Item,19,2)],
-    [Recipe_Item.new(RPG::Weapon,63,1)]),
-    Base_Recipe.new("Scrap Knife",[Recipe_Item.new(RPG::Item,20,1),
-    Recipe_Item.new(RPG::Item,19,1)],
-    [Recipe_Item.new(RPG::Weapon,64,1)]),
-    Base_Recipe.new("Wooden Club",[Recipe_Item.new(RPG::Item,17,1),
-    Recipe_Item.new(RPG::Item,20,1)],
-    [Recipe_Item.new(RPG::Weapon,65,1)]),
-    Base_Recipe.new("Wooden Staff",[Recipe_Item.new(RPG::Item,17,1)],
-    [Recipe_Item.new(RPG::Weapon,66,1)])
+    Base_Recipe.new("Fuse Potion I",[Recipe_Item.new(RPG::Item,1,5)],
+    [Recipe_Item.new(RPG::Item,2,1)]),
+    Base_Recipe.new("Fuse Potion II",[Recipe_Item.new(RPG::Item,2,5)],
+    [Recipe_Item.new(RPG::Item,3,1)])
   ]
   
   #should hold recipe object and fuctions for working with it
