@@ -1,0 +1,18 @@
+
+This is a concept of a crafting system.
+-Class Recipe_Element: this is the base class used in recipe to figure out needed info about ingredients or results.
+  -Note, most function have an optional param 'index'. The idea is element may have optional choices and index will
+  represent them. This is reserve for future implementions.
+
+-Class Recipe_Item: Implement Recipe_Element to handle items. 
+  -Item Type is RPG::Item,RPG::Weapon, or RPG::Armor
+  -Item ID is the database item id of the desire item
+  -Amount is the amount used per unit (called total)
+
+-Class Base_Recipe: This is the holder of a recipe. It contain two arrays for ingredients and results elements as well
+as a name for identifcation (TODO: change name to work with Vocab).
+
+-Module Recipe_Handler: This hold recipe list and handle fetching the lists indead of using a global variable.
+
+Scene_MainMenu_Crafting: 
+  -This is a rough implemention of the system as a main menu option.
