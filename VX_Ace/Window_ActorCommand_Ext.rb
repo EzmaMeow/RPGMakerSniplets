@@ -22,9 +22,16 @@ class Window_ActorCommand < Window_Command
     add_attack_command
     add_skill_commands
     add_guard_command
-    add_rest_command
+    add_extra_commands
     add_item_command
+    add_movement_commands
+  end
+  
+  def add_movement_commands
     add_escape_command
+  end
+  def add_extra_commands
+    add_rest_command
   end
   #--------------------------------------------------------------------------
   # * Add Attack Command to List
@@ -39,4 +46,5 @@ class Window_ActorCommand < Window_Command
   def add_escape_command
     add_command(Vocab::escape, :escape, @actor.attack_usable?)
   end
+  
 end
