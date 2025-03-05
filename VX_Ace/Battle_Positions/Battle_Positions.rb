@@ -62,11 +62,8 @@ class Game_Actor < Game_Battler
   
   def on_battle_end
     old_on_battle_end_actor_battle_positions
-    puts ""
     return if !respond_to?(:change_position)
-    print " meow: "; print @position
     change_position(@formation_position)
-    print " mew: "; print @position
   end
 end
 
@@ -95,19 +92,13 @@ class Game_Unit
       active_members = battle_member
     end
     for member in active_members
-      print " test1 "
       return if !member.respond_to?(:position)
-      print " test2 "
       next if member.dead? || !member.movable?
-      print " test3 "
       min_position = @min_position
       if member.respond_to?(:min_position)
-        print " testX "
         min_position = [member.min_position,@min_position].max
       end
-      print " test4 "
       next if member.position <= min_position
-      print " test5 "
       member.change_position(member.position-1)
     end
   end
