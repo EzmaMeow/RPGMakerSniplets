@@ -1,10 +1,9 @@
 class Game_Battler < Game_BattlerBase
   
-  alias :old_initialize :initialize
-  
   #exposing these for caculation reasons
   attr_reader   :state_turns
   attr_reader   :state_steps
+  
   
   def crit_damage
     return get_modifier(agi,200) + 1.5
@@ -12,6 +11,14 @@ class Game_Battler < Game_BattlerBase
   
   def get_modifier(base_value,factor)
     return base_value.to_f/factor.to_f
+  end
+
+
+  #--------------------------------------------------------------------------
+  # * extra_damage_value
+  #--------------------------------------------------------------------------
+  def extra_damage_value(value,user,item)
+    return value
   end
   
   #--------------------------------------------------------------------------
@@ -57,4 +64,21 @@ class Game_Battler < Game_BattlerBase
     return mev + modifier if item.magical?  # Return magic evasion if magic attack
     return 0
   end
+  
+  #--------------------------------------------------------------------------
+  # * Calculate Damage
+  #--------------------------------------------------------------------------
+  def make_damage_value(user, item)
+    value = item.damage.eval(user, self, $game_variables)
+    value *= item_element_rate(user, item)
+    value *= pdr if item.physical?
+    value *= mdr if item.magical?
+    value *= rec if item.damage.recover?
+    value = apply_critical(value) if @result.critical
+    value = apply_variance(value, item.damage.variance)
+    value = apply_guard(value)
+    value = extra_damage_value(value,user,item)
+    @result.make_damage(value.to_i, item)
+  end
+  
 end
