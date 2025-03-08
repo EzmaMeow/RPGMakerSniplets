@@ -139,7 +139,7 @@ class Game_Battler < Game_BattlerBase
       return 0
     end
     penalty = 1.0/([distance + 1 ,1].max.to_f)
-    if value * penalty <= 0
+    if value * penalty == 0
       @result.missed = true
       return 0
     end
