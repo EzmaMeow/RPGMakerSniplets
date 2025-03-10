@@ -89,8 +89,10 @@ class Scene_Battle < Scene_Base
   def on_enemy_ok
     if @enemy_window.enemy
       add_memory(BattleManager.actor,3,@enemy_window.enemy.index)
+      old_on_enemy_ok_battle_ext
+    else
+      @enemy_window.activate
     end
-    old_on_enemy_ok_battle_ext
   end
   
   
