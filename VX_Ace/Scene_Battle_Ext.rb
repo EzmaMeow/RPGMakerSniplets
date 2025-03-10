@@ -79,9 +79,7 @@ class Scene_Battle < Scene_Base
   # * Actor [OK]
   #--------------------------------------------------------------------------
   def on_actor_ok
-    if BattleManager.actor.input.target_index
-      add_memory(BattleManager.actor,4,BattleManager.actor.input.target_index)
-    end
+    add_memory(BattleManager.actor,4,@actor_window.index)
     old_on_actor_ok_battle_ext
   end
   
@@ -89,11 +87,8 @@ class Scene_Battle < Scene_Base
   # * Enemy [OK]
   #--------------------------------------------------------------------------
   def on_enemy_ok
-    if BattleManager.actor.input.target_index
-      #this was crashing sometimes since it was using @enemy_window.enemy.index
-      #the check is just a fail check, but BattleManager.actor.input.target_index
-      #should return a vaild index I think?
-      add_memory(BattleManager.actor,3,BattleManager.actor.input.target_index)
+    if @enemy_window.enemy
+      add_memory(BattleManager.actor,3,@enemy_window.enemy.index)
     end
     old_on_enemy_ok_battle_ext
   end
