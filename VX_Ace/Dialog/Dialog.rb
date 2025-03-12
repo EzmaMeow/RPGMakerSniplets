@@ -51,6 +51,30 @@ class Dialog
   end
 end
 
+#links a dialog to an actor to simpify creation and sync changes
+class Actor_Dialog < Dialog
+  
+  attr_accessor :actor_id
+  
+  def initialize(text=[],actor_id=0,background=0,position=2)
+    @actor_id = actor_id
+    super(text,"",0,background,position)
+  end
+  
+  def face_name
+    if $game_actors[@actor_id]
+      return $game_actors[@actor_id].face_name
+    end
+    return @face_name 
+  end
+  def face_index
+    if $game_actors[@actor_id]
+      return $game_actors[@actor_id].face_index
+    end
+    return @face_index 
+  end
+end
+
 module Dialog_Handler
   
   def self.fetch(key="")
