@@ -1,6 +1,26 @@
 ##this provides a space to add text to in cases where either the message editor is too small 
 #and a auto newline system is used or one want a single place to store all dialog
 
+class Game_Interpreter
+  def start_dialog(dialog,index = 0)
+    if dialog.is_a?(String)
+      dialog = Dialog_Handler.fetch(dialog)
+    end
+    if dialog 
+      return if !dialog.text(index)
+      wait_for_message
+      $game_message.clear
+      $game_message.face_name = dialog.face_name
+      $game_message.face_index = dialog.face_index
+      $game_message.background = dialog.background
+      $game_message.position = dialog.position
+      Dialog_Handler.add_text(dialog.text(index))
+    end
+  end
+  
+end
+
+
 class Dialog
   attr_accessor :face_name                # face graphic filename
   attr_accessor :face_index               # face graphic index
@@ -37,6 +57,35 @@ module Dialog_Handler
     return nil
   end
   
+  #this take a line of text and split it up if
+  #the text length is too long for a line
+  def self.add_text(text)
+    max_line_size = 38
+    current_line = ""
+    full_size = $game_message.face_name == "" || $game_message.face_index < 0
+    if full_size
+      max_line_size = 48
+    end
+    if text.length > max_line_size
+      text.split.each do |word|
+        if current_line.length + word.length + (current_line.empty? ? 0 : 1) <= max_line_size
+          current_line += (current_line.empty? ? "" : " ") + word
+        elsif word.length > max_line_size
+          $game_message.add(current_line)
+          current_line = ""
+        else
+          $game_message.add(current_line)
+          current_line = word
+        end
+      end
+      if !current_line.empty?
+        $game_message.add(current_line)
+      end
+    else
+      $game_message.add(text)
+    end
+  end
+  
 end
 
 ##BELOW IS AN EXAMPLE ON ADDING DIALOG
@@ -50,7 +99,7 @@ module Dialog_Handler
     {"eng"=>"Meow I am the big cat."},
     {"eng"=>"Meow mew mew."},
     {"eng"=>"I am a lazy cat."}
-  ])
+  ],"Actor3",7)
   
   @small_cat_dialog = Dialog.new([
     {"eng"=>"Mew I am the small cat."},
@@ -67,7 +116,7 @@ module Dialog_Handler
     in the $game_message during script call. Meow I also plan on adding a 
     run function in the Dialog handler to simplify this, but mew is a lazy
     cat."}
-  ])
+  ],"Spiritual",4)
 
   
   def self.fetch(key="")
