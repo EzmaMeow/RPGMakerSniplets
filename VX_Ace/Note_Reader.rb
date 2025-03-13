@@ -86,6 +86,44 @@ class Game_Party < Game_Unit
   end
 end
 
+#==============================================================================
+# ** Game_Interpreter
+#------------------------------------------------------------------------------
+class Game_Interpreter
+  
+  #check for items with a tag. This could check all items, so it should not
+  #check every update
+  def has_items_with_tag?(tag, amount=1, of_any=true, check_equip = false, source=$game_party.all_items)
+    count = 0
+    for item in source
+      next unless item
+      next unless item.tags.include?(tag) 
+      count += $game_party.item_number(item)
+      if check_equip
+        #this current wont count them all. 
+        #and is here only so weapon and armor checks
+        #count check may get added later
+        count += 1 if $game_party.members_equip_include?(item)
+      end
+      if count >= amount
+        return true
+      end
+      if !of_any
+        count = 0
+      end
+    end
+    return false
+  end
+  def has_weapon_with_tag?(tag, check_equip = true)
+    has_items_with_tag?(tag, 1,true,check_equip,$data_weapons)
+  end
+  def has_armor_with_tag?(tag, check_equip = true)
+    has_items_with_tag?(tag, 1,true,check_equip,$data_armors)
+  end
+  
+end
+
+
 # * Base  * 
 
 module Note_Reader
