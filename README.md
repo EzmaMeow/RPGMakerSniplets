@@ -44,8 +44,5 @@ Load Order:
     end```
     is a simple, but poor, example. Since some scripts will need to work with others database, overriding
     the constants in a diffrent file will help incase the file is updated. 
-    
-      This is an example window that display a window at the top of the screen for 120 frames. It will stack notifcations in a hash where the key is the message and
-      value is the amount of times it was called. This will keep the window up as long as there are messages in the queue hash, but also allow the queue to compress 
-      same messages by apending x# (where # is the value) when value is greater than 1.
+
       
