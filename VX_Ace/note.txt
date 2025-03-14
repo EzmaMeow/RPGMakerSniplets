@@ -1,0 +1,2 @@
+Files here that is not in a subdirectory are old or loose examples. They will
+be moved or removed overtime.
