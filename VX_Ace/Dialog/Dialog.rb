@@ -8,13 +8,13 @@ class Game_Interpreter
     end
     if dialog 
       return if !dialog.text(index)
-      wait_for_message
       $game_message.clear
       $game_message.face_name = dialog.face_name
       $game_message.face_index = dialog.face_index
       $game_message.background = dialog.background
       $game_message.position = dialog.position
       Dialog_Handler.add_text(dialog.text(index))
+      wait_for_message
     end
   end
   
