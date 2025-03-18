@@ -86,7 +86,7 @@ class Game_Variables
     if old_value != value
       trigger_key = ("var_"+variable_id.to_s).to_sym
       Event_Triggers.on_change(trigger_key)
-      Event_Triggers.on_change(:var,true)
+      Event_Triggers.on_change(:var)
     end
     old_setter_event_triggers(variable_id, value)
   end
@@ -99,7 +99,7 @@ class Game_Switches
     if old_value != value
       trigger_key = ("swi_"+switch_id.to_s).to_sym
       Event_Triggers.on_change(trigger_key)
-      Event_Triggers.on_change(:swi,true)
+      Event_Triggers.on_change(:swi)
     end
     old_setter_event_triggers(switch_id, value)
   end
@@ -112,7 +112,7 @@ class Game_SelfSwitches
     if old_value != value
       trigger_key = ("sswi_"+key.to_s).to_sym
       Event_Triggers.on_change(trigger_key)
-      Event_Triggers.on_change(:sswi,true)
+      Event_Triggers.on_change(:sswi)
     end
     old_setter_event_triggers(key, value)
   end
@@ -170,13 +170,14 @@ end
 
 class Game_Map
 
-  alias :old_refresh_event_triggers :refresh
+  alias :old_update_event_triggers :update
   alias :old_setup_events_event_triggers :setup_events
 
-  def refresh
-    Event_Triggers.run_triggers
-    old_refresh_event_triggers
+  def update(main = false)
+    Event_Triggers.run_triggers if main
+    old_update_event_triggers(main)
   end
+  
   def setup_events
     Event_Triggers.clear_listeners
     old_setup_events_event_triggers
