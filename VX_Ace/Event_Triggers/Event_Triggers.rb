@@ -1,6 +1,7 @@
 #this is an example of remote trigging events without depending on autorun
 #It currently only works for character events
 
+
 #--------------------------------------------------------------------------
 # * Event Triggers Module
 #   this provides additional triggers and listerners
@@ -52,6 +53,7 @@ module Event_Triggers
     end
   end
   
+  #id need to be a symbol. run_now it to have the event flag now
   def self.on_change(id = :update, run_now = false)
     if !@listeners[id]; return; end
     add_to_trigger_queue(id,run_now)
@@ -76,6 +78,7 @@ module Event_Triggers
       end
     end
   end
+  
 end
 
 
@@ -148,11 +151,13 @@ class Game_Event < Game_Character
   def initialize(map_id, event)
     old_initialize_event_triggers(map_id, event)
     @remote_trigger = nil
-    connect_trig(event,"var")
-    connect_trig(event,"swi")
-    connect_trig(event,"sswi")
-    connect_trig(event,"init")
-    connect_trig(event,"trig",false)
+    connect_trig(event,"var") #var change
+    connect_trig(event,"swi") #switch change
+    connect_trig(event,"sswi") #any self switch change
+    connect_trig(event,"init") #start of map
+    connect_trig(event,"reg") #player map region change
+    connect_trig(event,"ttag") #player tile tag change
+    connect_trig(event,"trig",false) #custom trigger. requires id like trig1
     
     
   end
@@ -177,7 +182,7 @@ class Game_Map
     Event_Triggers.run_triggers if main
     old_update_event_triggers(main)
   end
-  
+
   def setup_events
     Event_Triggers.clear_listeners
     old_setup_events_event_triggers
@@ -186,4 +191,75 @@ class Game_Map
       Event_Triggers.debug
     end
   end
+end
+
+class Game_CharacterBase
+
+  alias :old_update_move_event_triggers :update_move
+ 
+  #exposing them so they could be read
+  #if acess before on_move is called
+  #or to be change to force a behavior
+  attr_accessor :last_region_id
+  attr_accessor :last_terrain_tag
+  
+  #--------------------------------------------------------------------------
+  # * Update While Moving
+  #--------------------------------------------------------------------------
+  def update_move
+    old_update_move_event_triggers
+    on_move
+  end
+
+  #calls additial checks on move
+  def on_move
+    if region_id != @last_region_id
+      on_region_entered
+      @last_region_id = region_id
+    end
+    if terrain_tag != @last_terrain_tag
+      on_terrain_tag_entered
+      @last_terrain_tag = terrain_tag
+    end
+  end
+  #self trigger for region change
+  def on_region_entered
+    #placeholder. player will use this, but it here 
+    #incase others want to listen to it via script
+  end
+  #self trigger for terrain tag change
+  def on_terrain_tag_entered
+    #placeholder. player will use this, but it here 
+    #incase others want to listen to it via script
+  end
+
+
+  
+    #NOTE: can add more triggers in a similar way
+    #but since we catch their old value, it may not be
+    #ideal to add them unless they are needed
+    #all the base func in character could be
+    #move to player if characters will never make use if it
+    #$game_map.ladder?(@x, @y)
+    #$game_map.bush?(@x, @y)
+    #there can be more. there tile types (hills, shallow water)
+    #but they are a bit more difficult to acess, but could be exposed
+    #if needed
+
+end
+
+class Game_Player < Game_Character
+  
+  def on_region_entered
+    trigger_key = ("reg_"+region_id.to_s).to_sym
+    Event_Triggers.on_change(trigger_key)
+    Event_Triggers.on_change(:reg)
+  end
+  
+  def on_terrain_tag_entered
+    trigger_key = ("ttag_"+terrain_tag.to_s).to_sym
+    Event_Triggers.on_change(trigger_key)
+    Event_Triggers.on_change(:ttag)
+  end
+
 end
