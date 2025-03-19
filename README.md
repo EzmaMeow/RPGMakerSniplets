@@ -2,47 +2,61 @@
 
 Note: Most of this will be backup and references as I mess with RPG Maker.
 
-Terms:
-  -Injection (Inj):
-    This file mostly focus on adding to an existing methoods usally connecting a system to the file
-    without ending with _Injection. (also means it depends on that file)
-  -Extension (Ext):
-    This file is mostly to add to an existing class or modual. It like the injection, but more focus
-    on a single class and not dependent on other beside the one it is overriding. 
-
-NOTE:
-  -Currently the configuration of most scripts are stored as constants (All cap varibles) and may need to
-  be modify to work with other projects. This may change in the future when ever I feel like testing other ways.
-
-  -rules with injections and overrides may be fliped for files that are compressed into one only for editing reasons
-  and only if they can work that way.
-
-  -files in their own directory beside rpg maker versions will try to handle aliasing better.
-  loose files append with old due to Ext and Inj files being merged. This will cause a stack too deep issue
-  if two files use the same old alias id. The new system still prefix with old, but appends with the namespace
-  of the project that aliasing. This may result in long methood name, so namespace id may be reduce if nessary.
-
-
-Install:
-Each project should be independent. I will try to comment at the top of the file any dependencies.
-Load Order:
-  -The scripts should be added under `▼ Materials` and should be added before any file with _Injections or _Inj
-  -Injections should be added last
-  -Extentsions should be added before anything that depends on the features they add to the base class,
-    else they can be place where ever, but since they may override with getters or setters, then
-    they should be read and add the logic to any existing files that changes base classes or modified
-    to work with others scripts. Also in this case, the one who override is desired, should be added last.
+## Load Order:
+  I try not to depend too heavily on load order. Usally what is importatint is when functinality get alias or overriden
+  so usally the order follows below:
+  
+    -Base classes Override or Overhaul
     
-  -Compress scripts (ones with `# * INJECTION * ` comments) may be able to be place anywhere as long as it is before Configs, 
-    but might be best after extensions since ext may override some functionalites. Major issue with order is menu placement 
-    order if it adds a menu.
+    -Base classes Extensions
+    
+    -Other classes
+    
+    -Other classes Override or Overhaul
+    
+    -other classes Extensions
+    
+    -Injections
+    
+    -Configs
+    
+  Some scripts are features containing other classes, Extensions, or Injections in a single file. They should be treated as other classes or get added
+  somewhere between that and configs as long as they do not have Overhaul in their name (else they should load first).
+  Sadly I can not say where since it depends on what the other scipts do and it might not matter in most cases.
 
-  -`Config` scripts are added last. Their role is to write over the defaults without having to change the file
-    directly. 
-    ```class Script_Name
-        CONSTANT_OF_THE_SAME_NAME = new_value
-    end```
-    is a simple, but poor, example. Since some scripts will need to work with others database, overriding
-    the constants in a diffrent file will help incase the file is updated. 
+## Terms I may use:
+
+  -Injection (Inj):
+  
+    These usally alias base classes functinality so the added script will be used as needed without depending on event calls
+    
+  -Extension (Ext):
+  
+    There are more focus on change an existing class and adding functionality to it. These are usally one of the first
+    scripts to load in after any Override or Overhauls.
+    
+  -Override or Overhaul:
+  
+    These changes the base functionality in an unsafe way. They are meant to load first and usally
+    made to allow fucture script to change functionality that the base code made too limited.
+  -Configs:
+  
+    These scripts are usally not provided. They change constants or add to data structures of moduals
+    depending on what the the user needs.
+    
+  -Features:
+  
+    These are usally more plug and play scripts that may modify a few base scripts to allow them to work.
+    I will try to add keywords in comments like `#  *  INJECTIONS ` to help identify the type of changes.
+    Also I will try to comment notes about load order, dependencies and general notes at the top of the file.
+
+## NOTE:
+
+  I will try to batch loose scripts into features overtime if I feel it will work together. I may reserver a dir for loose files I have no plan on 
+  grouping up into features. Feature should be functional when the base script is added. Other files may be optional feature that may or may not depend
+  on another feature. I will try to comment important notes at the top of the file for such cases.
+
+
+
 
       
