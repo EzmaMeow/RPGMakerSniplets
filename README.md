@@ -6,19 +6,19 @@ Note: Most of this will be backup and references as I mess with RPG Maker.
   I try not to depend too heavily on load order. Usally what is importatint is when functinality get alias or overriden
   so usally the order follows below:
   
-    -Base classes Override or Overhaul
+  - Base classes Override or Overhaul
     
-    -Base classes Extensions
+  - Base classes Extensions
     
-    -Other classes
+  - Other classes
     
-    -Other classes Override or Overhaul
+  - Other classes Override or Overhaul
     
-    -other classes Extensions
+  - Other classes Extensions
     
-    -Injections
+  - Injections
     
-    -Configs
+  - Configs
     
   Some scripts are features containing other classes, Extensions, or Injections in a single file. They should be treated as other classes or get added
   somewhere between that and configs as long as they do not have Overhaul in their name (else they should load first).
@@ -26,25 +26,25 @@ Note: Most of this will be backup and references as I mess with RPG Maker.
 
 ## Terms I may use:
 
-  -Injection (Inj):
+  - Injection (Inj):
   
     These usally alias base classes functinality so the added script will be used as needed without depending on event calls
     
-  -Extension (Ext):
+  - Extension (Ext):
   
     There are more focus on change an existing class and adding functionality to it. These are usally one of the first
     scripts to load in after any Override or Overhauls.
     
-  -Override or Overhaul:
+  - Override or Overhaul:
   
     These changes the base functionality in an unsafe way. They are meant to load first and usally
     made to allow fucture script to change functionality that the base code made too limited.
-  -Configs:
+  - Configs:
   
     These scripts are usally not provided. They change constants or add to data structures of moduals
     depending on what the the user needs.
     
-  -Features:
+  - Features:
   
     These are usally more plug and play scripts that may modify a few base scripts to allow them to work.
     I will try to add keywords in comments like `#  *  INJECTIONS ` to help identify the type of changes.
