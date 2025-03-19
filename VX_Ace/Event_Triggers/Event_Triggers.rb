@@ -11,17 +11,40 @@ module Event_Triggers
   # * Module Instance Variables
   #--------------------------------------------------------------------------
   @listeners = {}
-  #common events would need a diffrent call system, so may not include it yet
-  #@common_listeners = {} 
+  @common_listeners = {} 
   @queue_triggers = []
   
   def self.debug
     puts " size test"
     print @listeners.size
   end
+
+  #assign one common event to a trigger symbol. 
+  #This do not check if it an autorun, so try not to assign
+  #autoruns since it most likly will be redundant.
+  def self.assign_common_event(common_event_id,trigger)
+    return if !common_event_id || !trigger
+    @common_listeners[trigger] = common_event_id
+  end
   
   def self.clear_listeners
     @listeners.clear 
+  end
+
+  #start the common event that is link to the trigger
+  #it should run before the other events right after the trigger
+  #is triggered.
+  def self.start_common(trigger)
+    return false if !@common_listeners[trigger]
+    common_event = $data_common_events[@common_listeners[trigger]]
+    return false if !common_event
+    interpreter = Game_Interpreter.new(1)
+    interpreter.setup(common_event.list, 0)
+    if interpreter.respond_to?(:run)
+      interpreter.run
+      return true
+    end
+    return false
   end
   
   def self.connect_to(id, event)
@@ -56,6 +79,7 @@ module Event_Triggers
   #id need to be a symbol. run_now it to have the event flag now
   def self.on_change(id = :update, run_now = false)
     if !@listeners[id]; return; end
+    start_common(id) #will start it now and start it first
     add_to_trigger_queue(id,run_now)
   end
   
