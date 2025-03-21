@@ -10,7 +10,7 @@ class Game_CharacterBase
   alias :old_set_graphic_ext :set_graphic
   
   #--------------------------------------------------------------------------
-  # * Set Graphic
+  # * set graphic
   #   added the ability to set the patter(pat) (animation frame) and 
   #   direction(dir) as long as the value is in range
   #   patter need to be 0,1,2 or it will be set to the default of 1
@@ -20,11 +20,18 @@ class Game_CharacterBase
   #--------------------------------------------------------------------------
   def set_graphic(character_name, character_index, pat= -1, dir = -1)
     old_set_graphic_ext(character_name, character_index)
-    if pat > 0 && pat< 4
-      @original_pattern = pat
+    if pat >= 0
+      @original_pattern = pat % 3
     end
-    if dir > 0 && dir < 5
-      set_direction(2 + dir * 2)
+    if dir >= 0
+      @direction = (2 + (dir % 4)* 2)
     end
   end
 end
+
+# below is an example of acessing the first index of a character
+# [index,pat,dir] left to right top to bottom
+# [0,0,0] [0,1,0] [0,2,0]
+# [0,0,1] [0,1,1] [0,2,1]
+# [0,0,2] [0,1,2] [0,2,2]
+# [0,0,3] [0,1,3] [0,2,3]
