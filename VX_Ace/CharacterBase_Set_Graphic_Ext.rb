@@ -21,7 +21,10 @@ class Game_CharacterBase
   def set_graphic(character_name, character_index, pat= -1, dir = -1)
     old_set_graphic_ext(character_name, character_index)
     if pat >= 0
+      #original_pattern is used if no animation is being handled
       @original_pattern = pat % 3
+      #pattern is the one it displays
+      @pattern = @original_pattern 
     end
     if dir >= 0
       @direction = (2 + (dir % 4)* 2)
