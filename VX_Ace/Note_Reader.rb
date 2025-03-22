@@ -4,13 +4,15 @@
 ##Exposing notes in the Game_Map
 class Game_Map
   def note
-    @map.note
+    return "" if !@map
+    return @map.note
   end
 end
 ##Exposing notes in ItemBase which expose it for items, skills, and armor/weapons
 class Scene_ItemBase < Scene_MenuBase
   def note
-    @class.note
+    return "" if !@class
+    return @class.note
   end
 end
 
