@@ -14,18 +14,27 @@ class Game_Event < Game_Character
   alias :old_initialize_manual_triggers :initialize
   def initialize(map_id, event)
     old_initialize_manual_triggers(map_id, event)
-    if event.name.include?(":")
-      for trig_scan_element in event.name.scan(/:(\w+)/)
+    call_triggers(call_type=:init)
+  end
+
+  def call_triggers(call_type=:call)
+    if @event.name.include?(":")
+      for trig_scan_element in @event.name.scan(/:(\w+)/)
         call = trig_scan_element[0].to_sym
         next if !call
-        send(call) if respond_to?(call)
+        send(call,call_type) if respond_to?(call)
       end
     end
   end
-  def meow
+  
+  def meow(call_type=nil)
     print "meow meow"
   end
-  def random
-    set_graphic("!Objects1_Normal", rand(7), rand(3),rand(4))
+  def random(call_type=nil)
+    if call_type == :init
+      set_graphic("!Objects1_Normal", rand(7), rand(3),rand(4))
+    else
+      print "I am only called on init" if $TEST
+    end
   end
 end
