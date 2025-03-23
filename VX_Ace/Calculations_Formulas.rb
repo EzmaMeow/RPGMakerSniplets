@@ -31,7 +31,7 @@ class Formula
   #This one focus on doing a fix damage plus scaled damage
   def self.magic_attack(power=1, magic=1, level=1, scaling_factor = 10)
     scaling =(level.to_f - 1.0)/scaling_factor.to_f + 1.0
-    return [power + (magic * scaling).floor,0.0].max
+    return ([power * (magic/1000.0 + 1.0)*scaling,0.0].max).floor
   end
 
   
