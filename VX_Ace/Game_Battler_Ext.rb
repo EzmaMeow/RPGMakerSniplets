@@ -50,10 +50,11 @@ class Game_Battler < Game_BattlerBase
   # * Calculate Hit Rate of Skill/Item
   #--------------------------------------------------------------------------
   def item_hit(user, item)
-    modifier = get_modifier((luk+agi)-(user.luk+user.agi),1000)
+    #modifier = get_modifier((luk+agi)-(user.luk+user.agi),1000)
+    modifier = get_modifier((user.luk+user.agi)-(luk+agi),1000)
     rate = item.success_rate * 0.01     # Get success rate
     rate *= user.hit if item.physical?  # Physical attack: Multiply hit rate
-    return rate + modifier              # Return calculated hit rate
+    return rate + modifier   # Return calculated hit rate
   end
   #--------------------------------------------------------------------------
   # * Calculate Evasion Rate for Skill/Item
