@@ -2,7 +2,7 @@ class Formula
   
   #returns a value base on the ratio of the stat and max stat offset 
   #by the provided base.
-  def self.get_modifier(stat, base = 1.0, max=255.0)
+  def self.get_modifier(stat, base = 1.0, max=1000.0)
     return (stat.to_f/max.to_f) + base
   end
   
@@ -24,8 +24,9 @@ class Formula
   #scaling_factor is the level at which the skill get bonus damage from level
   #base on that ratio
   def self.power_attack(power=1, attack=1, defence=0, level=1, scaling_factor = 10)
-    scaling =(level.to_f - 1.0)/scaling_factor.to_f + 1.0
-    return (power * [(attack-defence),1].max * scaling).floor
+    return (power * (attack/[defence,1.0].max) * (level *scaling_factor)).floor
+    #scaling =(level.to_f - 1.0)/scaling_factor.to_f + 1.0
+    #return (power * [(attack-defence),1].max * scaling).floor
   end
   
   #This one focus on doing a fix damage plus scaled damage
