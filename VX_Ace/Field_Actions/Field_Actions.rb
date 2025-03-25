@@ -40,7 +40,8 @@ class Game_Player < Game_Character
     if can_jump?
       distance_x = $game_map.x_with_direction(0, @direction)*2
       distance_y = $game_map.y_with_direction(0, @direction)*2
-      point_acessable = passable?(@x+distance_x,@y+distance_y,@direction)
+      point_acessable = passable?(@x+distance_x,@y+distance_y,1)
+      #point_acessable = passable?(@x+distance_x,@y+distance_y,@direction)
       if point_acessable && jump_point?()
         jump(distance_x,distance_y)
         #return since action was used up
