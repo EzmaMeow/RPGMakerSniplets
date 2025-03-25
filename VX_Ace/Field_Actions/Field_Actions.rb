@@ -14,45 +14,76 @@ class Game_Player < Game_Character
   def initialize
     old_initialize_field_actions
     @field_jump_enable = true
+    @preparing_jump = nil
   end
   
-  #--------------------------------------------------------------------------
-  # * is jumping enable
-  #--------------------------------------------------------------------------
+  #can be used to check for flags to enable and disable jumpping
   def can_jump?
     return @field_jump_enable
   end
   
-  #--------------------------------------------------------------------------
-  # * is cell a vaild jump_point
-  #--------------------------------------------------------------------------
+  #check if the point is block by something that can be jump over
   def jump_point?(x=@x,y=@y,direction =@direction)
     x2 = $game_map.x_with_direction(x, direction)
     y2 = $game_map.y_with_direction(y, direction)
     return !passable?(x,y,direction) && $game_map.boat_passable?(x2, y2)
   end
-
-  #--------------------------------------------------------------------------
-  # * character_field_action
-  #--------------------------------------------------------------------------
+  
   def character_field_action
     #field jump
-    if can_jump?
+    if can_jump? && !preparing_jump?
       distance_x = $game_map.x_with_direction(0, @direction)*2
       distance_y = $game_map.y_with_direction(0, @direction)*2
       point_acessable = passable?(@x+distance_x,@y+distance_y,1)
-      #point_acessable = passable?(@x+distance_x,@y+distance_y,@direction)
+      #todo: add more cases
       if point_acessable && jump_point?()
-        jump(distance_x,distance_y)
-        #return since action was used up
+        if followers.visible
+          @preparing_jump = [true,distance_x,distance_y,0]
+        else
+          @preparing_jump = [false,distance_x,distance_y,0]
+        end
         return true
       end
     end
   end
-
-  #--------------------------------------------------------------------------
-  # * on_action_pressed
-  #--------------------------------------------------------------------------
+  
+  def preparing_jump?
+    return @preparing_jump != nil
+  end
+  def preparing_jump_update
+    return if @preparing_jump == nil
+    if @preparing_jump[0]
+      if @preparing_jump[3] == 0
+        @followers.gather
+        @preparing_jump[3] = 1
+      elsif @preparing_jump[3] == 1
+        if !@followers.gathering?
+          @preparing_jump[3] = 2
+          $game_player.followers.visible = false
+          refresh
+        end
+      elsif @preparing_jump[3] == 2
+        jump(@preparing_jump[1],@preparing_jump[2])
+        @followers.each do |follower|
+          follower.moveto(@x,@y)
+        end
+        @preparing_jump[3] = 3
+      elsif @preparing_jump[3] == 3
+        if !jumping?
+          @preparing_jump[3] = 4
+        end
+      elsif @preparing_jump[3] == 4
+        $game_player.followers.visible = true
+        refresh
+        @preparing_jump = nil
+      end
+    else
+      jump(@preparing_jump[1],@preparing_jump[2])
+      @preparing_jump = nil
+    end
+  end
+  
+  
   def on_action_pressed
     return if $game_map.interpreter.running?
     if Input.trigger?(:C)
@@ -74,6 +105,7 @@ class Game_Player < Game_Character
   #--------------------------------------------------------------------------
   def update
     old_update_field_actions
+    preparing_jump_update
     on_action_pressed
   end
 end
