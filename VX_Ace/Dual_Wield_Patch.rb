@@ -29,9 +29,10 @@ class Game_Actor
       elsif item.etype_id == 1
         return false if equip_type_sealed?(1)
       end
-    else
-      return false if equip_slots[slot_id] != item.etype_id
+    #else
+    #  return false if equip_slots[slot_id] != item.etype_id
     end
+    return false if equip_slots[slot_id] != item.etype_id
     return true
   end
   
