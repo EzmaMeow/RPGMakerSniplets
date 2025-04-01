@@ -132,7 +132,7 @@ class Game_Battler < Game_BattlerBase
   def apply_position_effect(value,user,item)
     bonuses = get_range_bonuses(user,item)
     range = 4 + bonuses[0]
-    if item.respond_to?(:range); range = item.range; end
+    if item.respond_to?(:range); range = item.range + bonuses[0]; end
     distance = (@position + user.position) - range 
     if !reach?(user,item)
       @result.missed = true
