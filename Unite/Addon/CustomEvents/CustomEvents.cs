@@ -10,6 +10,14 @@
  * @type string
  * @default CE 
  * 
+ * @param logEventID
+ * @text boolean value
+ * @desc Will also prefix log message with an event id.
+ * @type boolean
+ * @default true
+ * @on Enable
+ * @off Disable
+ * 
  * @command LogMessage
  *      @text Log Output a Message
  *      @desc output a message to Unity Log Window.
@@ -22,6 +30,7 @@
  * 
  */
 
+using RPGMaker.Codebase.Runtime.Addon;
 using UnityEngine;
 
 namespace RPGMaker.Codebase.Addon
@@ -29,14 +38,24 @@ namespace RPGMaker.Codebase.Addon
     public class CustomEvents
     {
         private string _addonPrefix;
+        private bool _logEventID;
 
         private string FormatLogMessage(string message)
         {
-            return $"{_addonPrefix}: {message}";
+            var eventId = AddonManager.Instance.GetCurrentEventId();
+            if (eventId != null && _logEventID)
+            {
+                return $"{_addonPrefix}:({eventId}) {message}";
+            }
+            else
+            {
+                return $"{_addonPrefix}: {message}";
+            }
         }
 
-        public CustomEvents(string addonPrefix)
+        public CustomEvents(string addonPrefix, bool logEventID)
         {
+            _logEventID = logEventID;
             _addonPrefix = addonPrefix;
             Debug.Log($"{addonPrefix} init");
         }
