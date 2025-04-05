@@ -4,7 +4,7 @@
  * @help Provides events to pull Localize text from csv files.
  * @version 0.0.1
  * 
- * @command clearCatchedLocalizeData
+ * @command ClearCatchedLocalizeData
  *      @text Free Catched Localize Data
  *      @desc Clears the localization catch. This is to reduce catch size.
  *      
@@ -39,6 +39,16 @@
  *      @desc Catch the data to be easier to acess later.
  *      @type boolean
  *      @default true
+ *      
+ * @command SetLanguage
+ *      @text SetLanguage
+ *      @desc Set the language
+ *      
+ *  @arg localeKey
+ *      @text localeKey
+ *      @desc the key used to identify the language. 
+ *      @type string
+ *      @default en  
  *      
  * @command ShowText
  *      @text Set the next message text
@@ -95,27 +105,31 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using RPGMaker.Codebase.CoreSystem.Knowledge.DataModel.CharacterActor;
 using RPGMaker.Codebase.Runtime.Addon;
-using RPGMaker.Codebase.Runtime.Battle.Window;
 using RPGMaker.Codebase.Runtime.Common;
-using RPGMaker.Codebase.Runtime.Common.Component.Hud;
 using RPGMaker.Codebase.Runtime.Common.Enum;
-using RPGMaker.Codebase.Runtime.Event;
 using UnityEngine;
-using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCounters;
 
 namespace RPGMaker.Codebase.Addon
 {
     public class LocalizationEvents 
     {
+        public string language;
         public Dictionary<string, Dictionary<string, string[]>> catchedLocalizeData;
         private Action _callback;
+
+        public static readonly Dictionary<SystemLanguage, string> localeKeys = new Dictionary<SystemLanguage, string> {
+            { SystemLanguage.English, "en" },
+            { SystemLanguage.Spanish, "es" },
+            { SystemLanguage.French, "fr" },
+            { SystemLanguage.German, "de" },
+            //Todo: populate this. could use an array, but this be easire to read
+        };
 
         //Note: could also limit it to only load the current langauge to save space, but catch need to
         //be clear on language change
@@ -169,7 +183,6 @@ namespace RPGMaker.Codebase.Addon
 
         private void DecideEvent()
         {
-            //Debug.Log($"input");
             if (HudDistributor.Instance.NowHudHandler().IsInputWait())
             {
                 HudDistributor.Instance.NowHudHandler().Next();
@@ -197,35 +210,52 @@ namespace RPGMaker.Codebase.Addon
             HudDistributor.Instance.NowHudHandler().CloseMessageWindow();
             if (_callback != null)
             {
-                //Debug.Log($"ending");
                 _callback();
             }
         }
 
+
         public LocalizationEvents()
         {
+            //Todo: need to have it be base on save, could use events, but
+            //would need to fetch and set each time the game loads
+            language = Application.systemLanguage.ToString();
+            if (localeKeys.ContainsKey(Application.systemLanguage)){
+                language = localeKeys[Application.systemLanguage];
+            }
+            
             catchedLocalizeData = new Dictionary<string, Dictionary<string, string[]>>();
         }
 
         public string GetLocalizeString(string key, string file, bool catchData = true)
         {
-            //NOTE: THIS NEED TO READ THE LANGUAGE and pick an element from
-            //the array instead of joining it. First line should be reserve for
-            //locale keys. it may use the Key id, but I am not sure of the key I would used. maybe locale_key
             var data = GetLocalizeData(file, true);
             string localizeString = "";
+            List<string> localeKeys = new();
             if (data != null)
             {
+                if (data.ContainsKey("locale_key"))
+                {
+                    localeKeys = data["locale_key"].ToList();
+                }
                 if (data.ContainsKey(key))
                 {
-                    localizeString = string.Join(", ", data[key]);
-                    Debug.Log($"key: {key} | value: localizeString");
+                    var localizeStrings = data[key];
+                    var localeId = localeKeys.IndexOf(language);
+                    if (localeId >=0 )
+                    {
+                        localizeString = localizeStrings[localeId];
+                    }
+                    else
+                    {
+                        localizeString = localizeStrings[0];
+                    }
                 }
             }
             return localizeString;
         }
 
-        public void clearCatchedLocalizeData()
+        public void ClearCatchedLocalizeData()
         {
             catchedLocalizeData.Clear();
         }
@@ -241,11 +271,18 @@ namespace RPGMaker.Codebase.Addon
             //Debug.Log($"key: {key}, string: {localeString}");
         }
 
+        public void SetLanguage(string localeKey)
+        {
+            if (localeKey != "")
+            {
+                language = localeKey;
+            }
+        }
 
-        
         public void ShowText(string key, string file, bool catchData,
             string actor, bool showName, Int32 faceType, string name, string imageFileName)
         {
+            Debug.Log($"language = {language}");
             Debug.Log($"test|| actor = {actor}, showName ={showName}, faceType ={faceType}, name = {name}, face = {imageFileName}");
 
             var current_name = name;
