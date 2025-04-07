@@ -22,20 +22,37 @@
  *      @text Log Output a Message
  *      @desc output a message to Unity Log Window.
  * 
- *  @arg LogMessage
+ *  @arg message
  *      @text message
  *      @desc Message to display.
  *      @type string
  *      @default Message
- * 
+ *      
+ * @command LogTest
+ *      @text Log Output Test Results
+ *      @desc this is for testing out logic (aka dev only)
+ *      
+ * @command IsMapEventsRuning
+ *      @text Is Map Events Runing
+ *      @desc Set the assign switch to true if there a map event running
+ *      
+ *  @arg switchValue
+ *      @text Switch
+ *      @desc The switch to use.
+ *      @type switch
+ *      
  */
 
 using RPGMaker.Codebase.Runtime.Addon;
+using RPGMaker.Codebase.Runtime.Common;
+using RPGMaker.Codebase.Runtime.Map;
+using System;
+using TMPro;
 using UnityEngine;
 
 namespace RPGMaker.Codebase.Addon
 {
-    public class CustomEvents
+    public class CustomEvents 
     {
         private string _addonPrefix;
         private bool _logEventID;
@@ -53,6 +70,7 @@ namespace RPGMaker.Codebase.Addon
             }
         }
 
+
         public CustomEvents(string addonPrefix, bool logEventID)
         {
             _logEventID = logEventID;
@@ -64,5 +82,21 @@ namespace RPGMaker.Codebase.Addon
         {
             Debug.Log(FormatLogMessage(message));
         }
+
+        public void LogTest()
+        {
+            Debug.Log(FormatLogMessage($"Test: RunningEvent = {MapEventExecutionController.Instance.CheckRunningEvent()}"));
+        }
+
+        public void IsMapEventsRuning(string switchValue)
+        {
+            bool isRunning = MapEventExecutionController.Instance.CheckRunningEvent();
+            var switch_id = DataManager.Self().GetFlags().switches.FindIndex(item => item.id == switchValue);
+            if (switch_id > 0) {
+                var data = DataManager.Self().GetRuntimeSaveDataModel();
+                data.switches.data[switch_id] = isRunning;
+            }
+        }
+
     }
 }
