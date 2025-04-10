@@ -47,10 +47,16 @@
  *      @text JumpAhead
  *      @desc Jump Ahead
  *      
- *  @arg eventTarget
+ * @arg eventTarget
  *      @text eventTarget
  *      @desc the target event.
- *      @type map_event   
+ *      @type map_event 
+ *      
+ * @arg distance
+ *      @text distance
+ *      @desc distance to jump
+ *      @type integer
+ *      @default 1
  *      
  * @arg allowVehicle
  *      @text allowVehicle
@@ -264,7 +270,7 @@ namespace RPGMaker.Codebase.Addon
 			eventObj.GetComponent<CharacterOnMap>().ChangeCharacterDirection(GetDirectionFromVariable(variableID), true);
 		}
 
-		public void JumpAhead(string eventTarget, bool allowVehicle, bool checkCollision, int allowedTag, int allowedRegion)
+		public void JumpAhead(string eventTarget, int distance, bool allowVehicle, bool checkCollision, int allowedTag, int allowedRegion)
 		{
 			GameObject eventObj = null;
 			var targetData = new List<string>(Regex.Split(eventTarget.Trim('[', ']'), @"[,]"));
@@ -318,7 +324,7 @@ namespace RPGMaker.Codebase.Addon
             var eventDirection = eventObj.GetComponent<CharacterOnMap>().GetCurrentDirection();
 			var direction = directionalVector[(int)eventDirection];
 			Vector2Int currentPos = new Vector2Int(eventObj.GetComponent<CharacterOnMap>().x_now, eventObj.GetComponent<CharacterOnMap>().y_now);
-			Vector2Int jumpPos = currentPos + direction;
+			Vector2Int jumpPos = currentPos + (direction*distance);
 
 			x = jumpPos.x;
 			y = jumpPos.y > 0 ? jumpPos.y : -jumpPos.y; 
@@ -375,3 +381,4 @@ namespace RPGMaker.Codebase.Addon
 		}
 	}
 }
+
