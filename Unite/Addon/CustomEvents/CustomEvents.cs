@@ -51,188 +51,327 @@
  *      @text eventTarget
  *      @desc the target event.
  *      @type map_event   
+ *      
+ * @arg allowVehicle
+ *      @text allowVehicle
+ *      @desc If true, will allow jumping while player in a vehicle. NOTE: vehicle jumping is not supported. It make it jump, but the player orgins dose not move with it.
+ *      @type boolean
+ *      @default false
+ *      
+ * @arg checkCollision
+ *      @text checkCollision
+ *      @desc If true, will see if the character can move to the tile normally
+ *      @type boolean
+ *      @default true
+ *      
+ * @arg allowedTag
+ *      @text allowedTag
+ *      @desc allowedTag
+ *      @type integer
+ *      @default -1
+ *      
+ * @arg allowedRegion
+ *      @text allowedRegion
+ *      @desc allowedRegion
+ *      @type integer
+ *      @default -1
  */
 
+using RPGMaker.Codebase.CoreSystem.Knowledge.DataModel.Map;
 using RPGMaker.Codebase.CoreSystem.Knowledge.Enum;
+using RPGMaker.Codebase.CoreSystem.Service.EventManagement;
 using RPGMaker.Codebase.Runtime.Addon;
+using RPGMaker.Codebase.Runtime.Battle.Window;
 using RPGMaker.Codebase.Runtime.Common;
 using RPGMaker.Codebase.Runtime.Common.Component.Hud.Character;
 using RPGMaker.Codebase.Runtime.Map;
 using RPGMaker.Codebase.Runtime.Map.Component.Character;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UIElements;
 using static RPGMaker.Codebase.CoreSystem.Knowledge.DataModel.Flag.FlagDataModel;
+using static UnityEditor.PlayerSettings;
 
 namespace RPGMaker.Codebase.Addon
 {
-    public class CustomEvents
-    {
-        private string _addonPrefix;
+	public class CustomEvents
+	{
+		private string _addonPrefix;
 
-        private string FormatLogMessage(string message, bool logEventID = false)
-        {
-            var eventId = AddonManager.Instance.GetCurrentEventId();
-            if (eventId != null && logEventID)
-            {
-                return $"{_addonPrefix}:({eventId}) {message}";
-            }
-            else
-            {
-                return $"{_addonPrefix}: {message}";
-            }
-        }
+		private string FormatLogMessage(string message, bool logEventID = false)
+		{
+			var eventId = AddonManager.Instance.GetCurrentEventId();
+			if (eventId != null && logEventID)
+			{
+				return $"{_addonPrefix}:({eventId}) {message}";
+			}
+			else
+			{
+				return $"{_addonPrefix}: {message}";
+			}
+		}
+
+		private Vector2Int[] directionalVector = new Vector2Int[] {
+			Vector2Int.up,//Up
+			Vector2Int.down,//Down
+			Vector2Int.left,//Left
+			Vector2Int.right,//Right
+		};
 
 
-        public CustomEvents(string addonPrefix)
-        {
-            _addonPrefix = addonPrefix;
-            Debug.Log($"{addonPrefix} init");
-        }
+		public CustomEvents(string addonPrefix)
+		{
+			_addonPrefix = addonPrefix;
+			Debug.Log($"{addonPrefix} init");
+		}
 
-        public void LogMessage(string message)
-        {
-            Debug.Log(FormatLogMessage(message));
-        }
+		//for getting the tag or region. this will check of all tiles so tile id would not be checked
+		//type = [Terrain Tag][Event ID][Tile ID][Region ID]
+		public List<string> GetCellMeta(int type = 0, Vector2Int pos = new Vector2Int())
+		{
+			var returnValue = new List<string>();
+			if (type != 1)
+			{
+				foreach (var layerType in new MapDataModel.Layer.LayerType[] { MapDataModel.Layer.LayerType.A, MapDataModel.Layer.LayerType.B, MapDataModel.Layer.LayerType.C, MapDataModel.Layer.LayerType.D })
+				{
+#if (UNITY_EDITOR && !UNITE_WEBGL_TEST) || !UNITY_WEBGL
+					var layerTilemap = MapManager.GetTileMapForRuntime(layerType);
+#else
+				var layerTilemap = await MapManager.GetTileMapForRuntime(layerType);
+#endif
+					//may remove this... it a failsafe
+					if (pos.y > 0)
+					{
+						pos.y = -pos.y;
+					}
+					var tileDataModel = layerTilemap.GetTile<TileDataModel>(new Vector3Int(pos.x, pos.y, 0));
+					if (tileDataModel == null)
+					{
+						//will return empty string so that the index will represent the layer order 
+                        returnValue.Add("");
+						continue;
+                    }
 
-        public void LogTest()
-        {
-            Debug.Log(FormatLogMessage($"Test: RunningEvent = {MapEventExecutionController.Instance.CheckRunningEvent()}"));
-        }
+                    switch (type)
+					{
+						case 0:
+							{
+								returnValue.Add(tileDataModel.terrainTagValue.ToString());
+								break;
+							}
+						case 2:
+							{
+								returnValue.Add(tileDataModel.id);
+								break;
+							}
+						case 3:
+							{
+								returnValue.Add(tileDataModel.regionId.ToString());
+								break;
+							}
+					}
+				}
+			}
+			else
+			{
+                var currentMapId = MapManager.CurrentMapDataModel.id;
+#if (UNITY_EDITOR && !UNITE_WEBGL_TEST) || !UNITY_WEBGL
+                var currentMapEventMapDataModels = new EventManagementService().LoadEventMap().Where(eventMapDataModel => eventMapDataModel.mapId == currentMapId);
+#else
+                        var currentMapEventMapDataModels = (await new EventManagementService().LoadEventMap()).Where(eventMapDataModel => eventMapDataModel.mapId == currentMapId);
+#endif
 
-        public void IsMapEventsRuning(string switchID)
-        {
-            bool isRunning = MapEventExecutionController.Instance.CheckRunningEvent();
-            var switchIndex = DataManager.Self().GetFlags().switches.FindIndex(item => item.id == switchID);
-            if (switchIndex > 0)
-            {
-                var data = DataManager.Self().GetRuntimeSaveDataModel();
-                data.switches.data[switchIndex] = isRunning;
+                foreach (var eventMapDataModel in currentMapEventMapDataModels)
+                {
+                    if (eventMapDataModel.x == pos.x &&
+                        System.Math.Abs(eventMapDataModel.y) == System.Math.Abs(pos.y))
+                    {
+                        returnValue.Add(eventMapDataModel.SerialNumberString);
+                    }
+                }
             }
-        }
+			return returnValue;
+		}
 
-        public CharacterMoveDirectionEnum GetDirectionFromVariable(string variableID)
-        {
-            var data = DataManager.Self().GetRuntimeSaveDataModel();
-            var variableIndex = DataManager.Self().GetFlags().variables.FindIndex(item => item.id == variableID);
-            if (variableIndex < 0)
-            {
-                Debug.Log(FormatLogMessage($"Invaild Direction"));
-                return CharacterMoveDirectionEnum.None;
-            }
-            var variableValue = data.variables.data[variableIndex].ToLower();
-            if (variableValue == "0" || variableValue == "up")
-            {
-                return CharacterMoveDirectionEnum.Up;
-            }
-            else if (variableValue == "1" || variableValue == "down")
-            {
-                return CharacterMoveDirectionEnum.Down;
-            }
-            else if (variableValue == "2" || variableValue == "left")
-            {
-                return CharacterMoveDirectionEnum.Left;
-            }
-            else if (variableValue == "3" || variableValue == "right")
-            {
-                return CharacterMoveDirectionEnum.Right;
-            }
-            else if (variableValue == "4" || variableValue == "damage")
-            {
-                return CharacterMoveDirectionEnum.Damage;
-            }
-            else
-            {
-                Debug.Log(FormatLogMessage($"Invaild Direction"));
-            }
-            return CharacterMoveDirectionEnum.None;
-        }
+		public void LogMessage(string message)
+		{
+			Debug.Log(FormatLogMessage(message));
+		}
 
-        public void SetDirectionFromVariable(string variableID)
-        {
-            var eventID = AddonManager.Instance.GetCurrentEventId();
-            var eventObj = MapEventExecutionController.Instance.GetEventMapGameObject(eventID);
-            Debug.Log($"direction: {GetDirectionFromVariable(variableID)}");
-            eventObj.GetComponent<CharacterOnMap>().ChangeCharacterDirection(GetDirectionFromVariable(variableID), true);
-        }
+		public void LogTest()
+		{
+			Debug.Log(FormatLogMessage($"Test: RunningEvent = {MapEventExecutionController.Instance.CheckRunningEvent()}"));
+		}
 
-        //Note: this dose not check if vehicle can jump. 
-        public void JumpAhead(string eventTarget)
-        {
-            GameObject eventObj = null;
-            var targetData = new List<string>(Regex.Split(eventTarget.Trim('[', ']'), @"[,]"));
-            
-            if (targetData == null)
-            {
+		public void IsMapEventsRuning(string switchID)
+		{
+			bool isRunning = MapEventExecutionController.Instance.CheckRunningEvent();
+			var switchIndex = DataManager.Self().GetFlags().switches.FindIndex(item => item.id == switchID);
+			if (switchIndex > 0)
+			{
+				var data = DataManager.Self().GetRuntimeSaveDataModel();
+				data.switches.data[switchIndex] = isRunning;
+			}
+		}
+
+		public CharacterMoveDirectionEnum GetDirectionFromVariable(string variableID)
+		{
+			var data = DataManager.Self().GetRuntimeSaveDataModel();
+			var variableIndex = DataManager.Self().GetFlags().variables.FindIndex(item => item.id == variableID);
+			if (variableIndex < 0)
+			{
+				Debug.Log(FormatLogMessage($"Invaild Direction"));
+				return CharacterMoveDirectionEnum.None;
+			}
+			var variableValue = data.variables.data[variableIndex].ToLower();
+			if (variableValue == "0" || variableValue == "up")
+			{
+				return CharacterMoveDirectionEnum.Up;
+			}
+			else if (variableValue == "1" || variableValue == "down")
+			{
+				return CharacterMoveDirectionEnum.Down;
+			}
+			else if (variableValue == "2" || variableValue == "left")
+			{
+				return CharacterMoveDirectionEnum.Left;
+			}
+			else if (variableValue == "3" || variableValue == "right")
+			{
+				return CharacterMoveDirectionEnum.Right;
+			}
+			else if (variableValue == "4" || variableValue == "damage")
+			{
+				return CharacterMoveDirectionEnum.Damage;
+			}
+			else
+			{
+				Debug.Log(FormatLogMessage($"Invaild Direction"));
+			}
+			return CharacterMoveDirectionEnum.None;
+		}
+
+		public void SetDirectionFromVariable(string variableID)
+		{
+			var eventID = AddonManager.Instance.GetCurrentEventId();
+			var eventObj = MapEventExecutionController.Instance.GetEventMapGameObject(eventID);
+			Debug.Log($"direction: {GetDirectionFromVariable(variableID)}");
+			eventObj.GetComponent<CharacterOnMap>().ChangeCharacterDirection(GetDirectionFromVariable(variableID), true);
+		}
+
+		public void JumpAhead(string eventTarget, bool allowVehicle, bool checkCollision, int allowedTag, int allowedRegion)
+		{
+			GameObject eventObj = null;
+			var targetData = new List<string>(Regex.Split(eventTarget.Trim('[', ']'), @"[,]"));
+			
+			if (targetData == null)
+			{
+				return;
+			}
+			var eventID = AddonManager.Instance.GetCurrentEventId();
+			var targetID = targetData[0].Trim('"');
+			var targetType = targetData[1].Trim('"');
+			string vehicle = null;
+			int x = 0;
+			int y = 0;
+			if (targetType == "-1")
+			{
+				eventObj = MapEventExecutionController.Instance.GetEventMapGameObject(eventID);
+				targetID = eventID;
+			}
+			else if (targetType == "-2")
+			{
+				eventObj = MapManager.GetOperatingCharacterGameObject();
+				targetID = targetType;
+
+				if (allowVehicle)
+				{
+					//Need to change to null if ""
+					vehicle = (MapManager.CurrentVehicleId != "") ? MapManager.CurrentVehicleId: null;
+
+				}
+				else if (!allowVehicle && (MapManager.CurrentVehicleId != null && MapManager.CurrentVehicleId != ""))
+				{
+					Debug.Log($"JumpAhead cancel: is in vehicle {MapManager.CurrentVehicleId}");
+					return;
+				}
+			}
+			else
+			{
+				eventObj = MapEventExecutionController.Instance.GetEventMapGameObject(targetID);
+			}
+			if (eventObj == null) {
+                Debug.Log($"JumpAhead cancel: event object is null");
                 return;
-            }
-            var eventID = AddonManager.Instance.GetCurrentEventId();
-            var targetID = targetData[0].Trim('"');
-            var targetType = targetData[1].Trim('"');
-            var vehicle = "";
-            int x = 0;
-            int y = 0;
-            if(targetType == "-1")
-            {
-                eventObj = MapEventExecutionController.Instance.GetEventMapGameObject(eventID);
-                targetID = eventID;
-            }
-            else if (targetType == "-2")
-            {
-                Debug.Log($"is player");
-                eventObj = MapManager.GetOperatingCharacterGameObject();
-                targetID = targetType;
+			}
+			var stepMoveController = eventObj.GetComponent<StepMoveController>();
+			if (stepMoveController == null)
+			{
+				stepMoveController = eventObj.AddComponent<StepMoveController>();
+			}
 
-                vehicle = MapManager.CurrentVehicleId;
-
-
-            }
-            else
-            {
-                Debug.Log($"is not player");
-                eventObj = MapEventExecutionController.Instance.GetEventMapGameObject(targetID);
-            }
-            Debug.Log($"eventid = {eventID}");
-            if (eventObj == null) {
-                Debug.Log($"error");
-                return;
-            }
-            var stepMoveController = eventObj.GetComponent<StepMoveController>();
-            if (stepMoveController == null)
-            {
-                stepMoveController = eventObj.AddComponent<StepMoveController>();
-            }
-            Vector2[] directionEnumVector2 = new Vector2[] {
-                Vector2.down,//Up
-                Vector2.up,//Down
-                Vector2.left,//Left
-                Vector2.right,//Right
-            };
             var eventDirection = eventObj.GetComponent<CharacterOnMap>().GetCurrentDirection();
-            var direction = directionEnumVector2[(int)eventDirection];
-            x = Math.Abs(eventObj.GetComponent<CharacterOnMap>().x_now) + (int)direction.x;
-            y = Math.Abs(eventObj.GetComponent<CharacterOnMap>().y_now) + (int)direction.y;
-            var tile = MapManager.CurrentTileData(new Vector2(eventObj.GetComponent<CharacterOnMap>().x_now + (int)direction.x, eventObj.GetComponent<CharacterOnMap>().y_now - (int)direction.y));
+			var direction = directionalVector[(int)eventDirection];
+			Vector2Int currentPos = new Vector2Int(eventObj.GetComponent<CharacterOnMap>().x_now, eventObj.GetComponent<CharacterOnMap>().y_now);
+			Vector2Int jumpPos = currentPos + direction;
 
-            //end this if it normally would not be able to move.
-            if (!tile.CanEnterThisTiles(eventDirection, (vehicle == "" ? null : vehicle)))
-            {
-                return;
+			x = jumpPos.x;
+			y = jumpPos.y > 0 ? jumpPos.y : -jumpPos.y; 
+
+			var tile = MapManager.CurrentTileData(jumpPos);
+			bool navigable = true;
+
+            if (allowedTag >= 0)
+			{
+                var tags = GetCellMeta(0, jumpPos);
+				if (!tags.Contains(allowedTag.ToString()))
+				{
+                    Debug.Log($"JumpAhead cancel: dose not have tag {allowedTag}");
+                    navigable = false;
+				}
             }
+            if (allowedRegion >= 0)
+            {
+                var regions = GetCellMeta(3, jumpPos);
+                if (!regions.Contains(allowedRegion.ToString()))
+                {
+                    Debug.Log($"JumpAhead cancel: dose not have region {allowedRegion}");
+                    navigable = false;
+                }
+            }
+
+			//end this if it normally would not be able to move.
+			if (checkCollision)
+			{
+				if (!tile.CanEnterThisTiles(eventDirection, vehicle))
+				{
+					if (!navigable)
+					{
+						Debug.Log($"JumpAhead cancel: collsion detected and checkCollision = {checkCollision}");
+						return;
+					}
+				}
+			}
+			else if (!navigable)
+			{
+				Debug.Log($"JumpAhead cancel: no navigable terrain = {navigable}");
+				return;
+			}
 
 #if (UNITY_EDITOR && !UNITE_WEBGL_TEST) || !UNITY_WEBGL
-            stepMoveController.StartStepMove(
+			stepMoveController.StartStepMove(
 #else
-            await stepMoveController.StartStepMove(
+			await stepMoveController.StartStepMove(
 #endif
-                    AddonManager.Instance.TakeOutCommandCallback(),
-                    () => { stepMoveController.UpdateMove(); },
-                    targetID,
-                    EventMoveEnum.MOVEMENT_JUMP, x,y, true);
-        }
-    }
+					AddonManager.Instance.TakeOutCommandCallback(),
+					() => { stepMoveController.UpdateMove(); },
+					targetID,
+					EventMoveEnum.MOVEMENT_JUMP, x,y, true);
+		}
+	}
 }
