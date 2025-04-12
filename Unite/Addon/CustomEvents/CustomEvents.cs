@@ -57,6 +57,7 @@
  *      @desc distance to jump
  *      @type integer
  *      @default 1
+ *      
  * @arg trough
  *      @text trough
  *      @desc Allow jump with no collsion checks
@@ -81,6 +82,32 @@
  *      @type integer
  *      @default -1
  *      
+
+ *  @command SetVariableToLocationInFrontOfEvent
+ *      @text SetVariableToLocationInFrontOfEvent
+ *      @desc Will store the x and y of the tile infront of the selected event
+ *      
+ * @arg eventTarget
+ *      @text eventTarget
+ *      @desc the target event.
+ *      @type map_event 
+ *      
+ *  @arg varXID
+ *      @text x
+ *      @desc x
+ *      @type variable
+ *      
+ *  @arg varYID
+ *      @text y
+ *      @desc y
+ *      @type variable
+ *      
+ * @arg distance
+ *      @text distance
+ *      @desc distance from the character
+ *      @type integer
+ *      @default 1
+ *      
  *  @command IsEventAtLocation
  *      @text IsEventAtLocation
  *      @desc Check if there a event(character) at the location.
@@ -90,17 +117,15 @@
  *      @desc The switch to use.
  *      @type switch
  *          
- *  @arg x
+ *  @arg varXID
  *      @text x
  *      @desc x
- *      @type integer
- *      @default 0
+ *      @type variable
  *      
- *  @arg y
+ *  @arg varYID
  *      @text y
  *      @desc y
- *      @type integer
- *      @default 0
+ *      @type variable
  *      
  * @arg isBlocking
  *      @text isBlocking
@@ -118,17 +143,15 @@
  *      @desc The switch to use.
  *      @type switch
  *          
- *  @arg x
+ *  @arg varXID
  *      @text x
  *      @desc x
- *      @type integer
- *      @default 0
+ *      @type variable
  *      
- *  @arg y
+ *  @arg varYID
  *      @text y
  *      @desc y
- *      @type integer
- *      @default 0
+ *      @type variable
  *      
  *  @arg direction
  *      @text direction
@@ -251,18 +274,15 @@ namespace RPGMaker.Codebase.Addon
 			return CharacterMoveDirectionEnum.None;
         }
 
-        public CharacterMoveDirectionEnum GetDirectionFromVariable(string variableID)
-        {
-            var data = DataManager.Self().GetRuntimeSaveDataModel();
+		public string GetVariableValue(string variableID, string defaultValue="0")
+		{
             var variableIndex = DataManager.Self().GetFlags().variables.FindIndex(item => item.id == variableID);
-            if (variableIndex < 0)
-            {
-                Debug.Log(FormatLogMessage($"Invaild Direction"));
-                return CharacterMoveDirectionEnum.None;
+			if (variableIndex < 0)
+			{
+                return defaultValue;
             }
-            var variableValue = data.variables.data[variableIndex].ToLower();
-            return GetDirectionEnumFromString(variableValue);
-        }
+            return DataManager.Self().GetRuntimeSaveDataModel().variables.data[variableIndex].ToLower();
+		}
 
         public bool HasTerrainTag(Vector2Int position, int tagID)
 		{
@@ -317,6 +337,39 @@ namespace RPGMaker.Codebase.Addon
 			return null;
 		}
 
+
+		public (GameObject obj, string id, string type) ParceEventString(string eventString)
+		{
+            GameObject eventObj = null;
+
+            List<string> targetData = new List<string>(Regex.Split(eventString.Trim('[', ']'), @"[,]"));
+            string targetID = targetData[0].Trim('"');
+            string targetType = targetData[1].Trim('"');
+            if (targetData == null)
+            {
+                return (eventObj, targetID, targetType);
+            }
+            if (targetType == "-1")
+            {
+                var eventID = AddonManager.Instance.GetCurrentEventId();
+                eventObj = MapEventExecutionController.Instance.GetEventMapGameObject(eventID);
+                targetID = eventID;
+            }
+            else if (targetType == "-2")
+            {
+                eventObj = MapManager.GetOperatingCharacterGameObject();
+            }
+            else
+            {
+                eventObj = MapEventExecutionController.Instance.GetEventMapGameObject(targetID);
+            }
+            if (eventObj == null)
+            {
+                return (eventObj, targetID, targetType);
+            }
+            return (eventObj, targetID, targetType);
+        }
+
 		//Events
 
 		public void LogMessage(string message)
@@ -344,12 +397,12 @@ namespace RPGMaker.Codebase.Addon
 		{
 			var eventID = AddonManager.Instance.GetCurrentEventId();
 			var eventObj = MapEventExecutionController.Instance.GetEventMapGameObject(eventID);
-			eventObj.GetComponent<CharacterOnMap>().ChangeCharacterDirection(GetDirectionFromVariable(variableID), true);
+            var direction = GetDirectionEnumFromString(GetVariableValue(variableID, "-1"));
+            eventObj.GetComponent<CharacterOnMap>().ChangeCharacterDirection(direction, true);
 		}
 
 		public void JumpAhead(string eventTarget, int distance, bool trough, bool allowVehicle, int allowedTag, int allowedRegion)
 		{
-			GameObject eventObj = null;
 			Vector2Int direction;
 			Vector2Int currentPos;
 			Vector2Int jumpPos;
@@ -357,28 +410,19 @@ namespace RPGMaker.Codebase.Addon
 
 			var targetData = new List<string>(Regex.Split(eventTarget.Trim('[', ']'), @"[,]"));
 
-			if (targetData == null)
-			{
-				return;
-			}
-			var eventID = AddonManager.Instance.GetCurrentEventId();
-			var targetID = targetData[0].Trim('"');
-			var targetType = targetData[1].Trim('"');
-			if (targetType == "-1")
-			{
-                eventObj = MapEventExecutionController.Instance.GetEventMapGameObject(eventID);
-				targetID = eventID;
-			}
-			else if (targetType == "-2")
-			{
-				eventObj = MapManager.GetOperatingCharacterGameObject();
-				targetID = targetType;
+            (GameObject obj, string id, string type) eventData = ParceEventString(eventTarget);
+            //var eventData = eventData;
 
-				if (allowVehicle)
+            if (eventData.obj == null)
+            {
+                Debug.Log($"JumpAhead cancel: event object is null");
+                return;
+            }
+            if (eventData.type == "-2")
+			{ 
+                if (allowVehicle)
 				{
-					//Need to change to null if ""
 					vehicle = (MapManager.CurrentVehicleId != "") ? MapManager.CurrentVehicleId : null;
-
 				}
 				else if (!allowVehicle && (MapManager.CurrentVehicleId != null && MapManager.CurrentVehicleId != ""))
 				{
@@ -386,23 +430,11 @@ namespace RPGMaker.Codebase.Addon
 					return;
 				}
 			}
-			else
-			{
-				eventObj = MapEventExecutionController.Instance.GetEventMapGameObject(targetID);
-			}
-			if (eventObj == null)
-			{
-				Debug.Log($"JumpAhead cancel: event object is null");
-				return;
-			}
-
-
-			var eventDirection = eventObj.GetComponent<CharacterOnMap>().GetCurrentDirection();
+			var eventDirection = eventData.obj.GetComponent<CharacterOnMap>().GetCurrentDirection();
 			direction = directionalVector[(int)eventDirection];
-			currentPos = new Vector2Int(eventObj.GetComponent<CharacterOnMap>().x_now, eventObj.GetComponent<CharacterOnMap>().y_now);
-			jumpPos = currentPos + (direction * distance);
-
-
+			//currentPos = new Vector2Int(eventData.obj.GetComponent<CharacterOnMap>().x_now, eventData.obj.GetComponent<CharacterOnMap>().y_now);
+            currentPos = new Vector2Int(eventData.obj.GetComponent<CharacterOnMap>().x_next, eventData.obj.GetComponent<CharacterOnMap>().y_next);
+            jumpPos = currentPos + (direction * distance);
 
 			if (!trough)
 			{
@@ -431,25 +463,46 @@ namespace RPGMaker.Codebase.Addon
 				}
 			}
 			//Set up Step Controller for the jump
-			var stepMoveController = eventObj.GetComponent<StepMoveController>();
+			var stepMoveController = eventData.obj.GetComponent<StepMoveController>();
 			if (stepMoveController == null ) {
-                stepMoveController = eventObj.AddComponent<StepMoveController>();
+                stepMoveController = eventData.obj.AddComponent<StepMoveController>();
             }
 
+			var stepTarget = eventData.type == "-2"? eventData.type : eventData.id;
 #if (UNITY_EDITOR && !UNITE_WEBGL_TEST) || !UNITY_WEBGL
-			stepMoveController.StartStepMove(
+            stepMoveController.StartStepMove(
 #else
 			await stepMoveController.StartStepMove(
 #endif
 					AddonManager.Instance.TakeOutCommandCallback(),
 					() => { stepMoveController.UpdateMove(); },
-					targetID,
+                    stepTarget,
 					EventMoveEnum.MOVEMENT_JUMP, jumpPos.x, jumpPos.y > 0 ? jumpPos.y : -jumpPos.y, true);
 		}
 
-
-		public void IsEventAtLocation(string switchID, int x, int y, bool isBlocking)
+        public void SetVariableToLocationInFrontOfEvent(string eventTarget,string varXID, string varYID, int distance)
 		{
+            (GameObject obj, string id, string type) eventData = ParceEventString(eventTarget);
+            Vector2Int direction = directionalVector[(int)eventData.obj.GetComponent<CharacterOnMap>().GetCurrentDirection()];
+            Vector2Int position = (new Vector2Int(eventData.obj.GetComponent<CharacterOnMap>().x_next, eventData.obj.GetComponent<CharacterOnMap>().y_next)
+				+ (direction * distance));
+
+            int varXIndex = DataManager.Self().GetFlags().variables.FindIndex(item => item.id == varXID);
+            int varYIndex = DataManager.Self().GetFlags().variables.FindIndex(item => item.id == varYID);
+            DataManager.Self().GetRuntimeSaveDataModel().variables.data[varXIndex] = varXIndex > 0 ? position.x.ToString() : "0";
+            DataManager.Self().GetRuntimeSaveDataModel().variables.data[varYIndex] = varYIndex > 0 ? position.y.ToString() : "0";
+
+
+        }
+
+
+		//TODO: add a case to check for if they are interactable or just in general. so no check and a choice for each
+        public void IsEventAtLocation(string switchID, string varXID, string varYID, bool isBlocking)
+		{
+
+            int.TryParse(GetVariableValue(varXID,"0"), out int x);
+            int.TryParse(GetVariableValue(varYID, "0"), out int y);
+
             int switchIndex = DataManager.Self().GetFlags().switches.FindIndex(item => item.id == switchID);
             EventOnMap mapEvent = GetEventAtLocation(new Vector2Int(x, y > 0 ? -y : y));
 			bool switchValue = false;
@@ -474,9 +527,11 @@ namespace RPGMaker.Codebase.Addon
         }
 
 
-        public void IsLocationNavigable(string switchID, int x, int y, string direction, bool isPlayer)
+        public void IsLocationNavigable(string switchID, string varXID, string varYID, string direction, bool isPlayer)
 		{
-			int switchIndex = DataManager.Self().GetFlags().switches.FindIndex(item => item.id == switchID);
+            int.TryParse(GetVariableValue(varXID, "0"), out int x);
+            int.TryParse(GetVariableValue(varYID, "0"), out int y);
+            int switchIndex = DataManager.Self().GetFlags().switches.FindIndex(item => item.id == switchID);
 			bool switchValue = false;
             var tile = MapManager.CurrentTileData(new Vector2Int(x, y > 0 ? -y : y));
 			string vehicle = null;
@@ -492,4 +547,3 @@ namespace RPGMaker.Codebase.Addon
         }
     }
 }
-
