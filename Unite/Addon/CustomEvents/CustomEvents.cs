@@ -38,6 +38,11 @@
  *      @text SetDirectionFromVariable
  *      @desc Set this character direction from a variable.
  *      
+ * @arg eventTarget
+ *      @text eventTarget
+ *      @desc the target event.
+ *      @type map_event 
+ *      
  *  @arg variableID
  *      @text Variable 
  *      @desc The variable to use.
@@ -406,22 +411,35 @@ namespace RPGMaker.Codebase.Addon
 			}
 		}
 
-		public void SetDirectionFromVariable(string variableID)
+		public void SetDirectionFromVariable(string eventTarget, string variableID)
 		{
-			var eventID = AddonManager.Instance.GetCurrentEventId();
-			var eventObj = MapEventExecutionController.Instance.GetEventMapGameObject(eventID);
+
+			//var eventID = AddonManager.Instance.GetCurrentEventId();
+			//var eventObj = MapEventExecutionController.Instance.GetEventMapGameObject(eventID);
 			var direction = GetDirectionEnumFromString(GetVariableValue(variableID, "-1"));
-			eventObj.GetComponent<CharacterOnMap>().ChangeCharacterDirection(direction, true);
+
+			(GameObject obj, string id, string type) eventData = ParceEventString(eventTarget);
+
+			if (eventData.obj == null)
+			{
+				return;
+			}
+
+            eventData.obj.GetComponent<CharacterOnMap>().ChangeCharacterDirection(direction, true);
 		}
 
-		public void JumpAhead(string eventTarget, int distance, bool trough, bool allowVehicle, int allowedTag, int allowedRegion)
+
+            public void JumpAhead(string eventTarget, int distance, bool trough, bool allowVehicle, int allowedTag, int allowedRegion)
 		{
-			Vector2Int direction;
+            //Note: this may act odd at borders of looping maps
+			//Also this is design for only a single party member on map
+			//as well as an example of how to do some stuff as a addon.
+            Vector2Int direction;
 			Vector2Int currentPos;
 			Vector2Int jumpPos;
 			string vehicle = null;
 
-			var targetData = new List<string>(Regex.Split(eventTarget.Trim('[', ']'), @"[,]"));
+			//var targetData = new List<string>(Regex.Split(eventTarget.Trim('[', ']'), @"[,]"));
 
 			(GameObject obj, string id, string type) eventData = ParceEventString(eventTarget);
 
@@ -434,7 +452,8 @@ namespace RPGMaker.Codebase.Addon
 				if (allowVehicle)
 				{
 					vehicle = (MapManager.CurrentVehicleId != "") ? MapManager.CurrentVehicleId : null;
-				}
+
+                }
 				else if (!allowVehicle && (MapManager.CurrentVehicleId != null && MapManager.CurrentVehicleId != ""))
 				{
 					return;
